@@ -10,11 +10,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,8 +26,7 @@ import com.quickthought.orio.ui.theme.IncomeGreen
 
 @Composable
 fun TransactionItem(
-    transaction: TransactionDomain,
-    onDelete: (TransactionDomain) -> Unit
+    transaction: TransactionDomain
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),

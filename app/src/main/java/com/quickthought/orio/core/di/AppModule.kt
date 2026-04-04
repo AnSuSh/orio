@@ -38,10 +38,4 @@ object AppModule {
     fun provideTransactionsDao(db: OrioDatabase): TransactionsDAO {
         return db.transactionsDao()
     }
-
-    @Provides
-    @Singleton
-    fun provideTransactionsRepository(dao: TransactionsDAO): TransactionsRepository {
-        return TransactionsRepositoryImpl(dao)
-    }
 }

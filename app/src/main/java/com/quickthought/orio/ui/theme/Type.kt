@@ -21,7 +21,6 @@ val Typography = Typography(
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp,
-        color = Slate900
     ),
     // Used for Section Titles
     titleLarge = TextStyle(
@@ -36,7 +35,6 @@ val Typography = Typography(
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp,
-        color = Slate700
     ),
     // Used for Transaction Labels
     bodyLarge = TextStyle(

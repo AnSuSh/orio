@@ -1,22 +1,15 @@
 package com.quickthought.orio.presentation.transactions
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -33,7 +26,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,15 +37,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.presentation.transactions.components.AddTransactionSheet
-import com.quickthought.orio.presentation.transactions.components.BalanceOverview
-import com.quickthought.orio.presentation.transactions.components.BudgetEditDialog
-import com.quickthought.orio.presentation.transactions.components.BudgetProgressSection
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
+import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.ui.theme.ExpenseRed
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionsScreen(
+    modifier: Modifier = Modifier,
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -62,14 +53,15 @@ fun TransactionsScreen(
     var showSheet by remember { mutableStateOf(false) }
     var transactionToDelete by remember { mutableStateOf<TransactionDomain?>(null) }
 
-    var showBudgetDialog by remember { mutableStateOf(false) }
-    // A key to force animation replay
-    var budgetAnimKey by remember { mutableStateOf(0) }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Orio", style = MaterialTheme.typography.headlineSmall) },
+                title = {
+                    Text(
+                        "Orio - Transactions",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 )
@@ -81,96 +73,74 @@ fun TransactionsScreen(
             }
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .padding(paddingValues)
+        LazyColumn(
+            modifier = modifier
                 .fillMaxSize()
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 96.dp,
+                    top = 16.dp
+                ),
+            contentPadding = paddingValues,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
 
-                // Professional Overview Section
-                item {
-                    BalanceOverview(
-                        balance = state.totalBalance,
-                        income = state.totalIncome,
-                        expense = state.totalExpense
-                    )
-                }
+            // Section Header
+//                item {
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    Text(
+//                        text = "Recent Transactions",
+//                        style = MaterialTheme.typography.titleMedium,
+//                        color = MaterialTheme.colorScheme.onSurfaceVariant
+//                    )
+//                }
 
-                // Budget Progress Section
+            if (state.transactions.isEmpty()) {
                 item {
-                    // We wrap this in a key. When budgetAnimKey changes, the animation restarts.
-                    key(budgetAnimKey) {
-                        BudgetProgressSection(
-                            totalExpenses = state.totalExpense,
-                            daysLeftInMonth = state.daysLeftInMonth,
-                            monthlyBudget = state.monthlyBudget,
-                            modifier = Modifier.clickable {
-                                showBudgetDialog = true
-                            }
-                        )
+                    Box(
+                        Modifier.fillParentMaxHeight(0.5f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyTransactionsState()
                     }
                 }
-
-                // Section Header
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Recent Transactions",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            } else {
+                items(state.transactions, key = { it.transactionId }) { transaction ->
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { value ->
+                            if (value == SwipeToDismissBoxValue.EndToStart) {
+                                // Trigger your delete confirmation dialog or direct delete
+                                transactionToDelete = transaction
+                                false // Return false so the item doesn't disappear until confirmed
+                            } else {
+                                false
+                            }
+                        }
                     )
-                }
 
-                if (state.transactions.isEmpty()) {
-                    item {
-                        Box(
-                            Modifier.fillParentMaxHeight(0.5f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            EmptyState()
-                        }
-                    }
-                } else {
-                    items(state.transactions, key = { it.transactionId }) { transaction ->
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            confirmValueChange = { value ->
-                                if (value == SwipeToDismissBoxValue.EndToStart) {
-                                    // Trigger your delete confirmation dialog or direct delete
-                                    transactionToDelete = transaction
-                                    false // Return false so the item doesn't disappear until confirmed
-                                } else {
-                                    false
-                                }
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        enableDismissFromEndToStart = true,
+                        enableDismissFromStartToEnd = false,
+                        backgroundContent = {
+                            val color = ExpenseRed
+                            Box(
+                                Modifier
+                                    .fillMaxSize()
+                                    .background(color, MaterialTheme.shapes.medium)
+                                    .padding(horizontal = 20.dp),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = Color.White
+                                )
                             }
-                        )
-
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            enableDismissFromEndToStart = true,
-                            enableDismissFromStartToEnd = false,
-                            backgroundContent = {
-                                val color = ExpenseRed
-                                Box(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .background(color, MaterialTheme.shapes.medium)
-                                        .padding(horizontal = 20.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                        ) {
-                            TransactionItem(transaction) { transactionToDelete = it }
                         }
+                    ) {
+                        TransactionItem(transaction)
                     }
                 }
             }
@@ -185,21 +155,6 @@ fun TransactionsScreen(
             onSave = {
                 viewModel.addTransaction(it)
                 showSheet = false
-            }
-        )
-    }
-
-    if (showBudgetDialog) {
-        BudgetEditDialog(
-            currentBudget = state.monthlyBudget,
-            onDismiss = {
-                showBudgetDialog = false
-                budgetAnimKey++ // Trigger replay even if value didn't change
-            },
-            onSave = { newBudget ->
-                viewModel.saveMonthlyBudget(newBudget)
-                showBudgetDialog = false
-                budgetAnimKey++
             }
         )
     }
@@ -220,22 +175,5 @@ fun TransactionsScreen(
                 TextButton(onClick = { transactionToDelete = null }) { Text("Cancel") }
             }
         )
-    }
-}
-
-@Composable
-fun EmptyState() {
-    Column(
-        Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            Icons.Default.History,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = Color.LightGray
-        )
-        Text("No transactions yet", color = Color.Gray)
     }
 }
