@@ -4,12 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -64,10 +69,13 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                ) { _ -> // Padding is applied internally in each top level screens.
+                ) { innerPadding ->
                     NavHost(
                         navController = navController,
                         startDestination = Screen.Home.route,
+                        modifier = Modifier
+                            .padding(bottom = innerPadding.calculateBottomPadding())
+                            .consumeWindowInsets(WindowInsets.navigationBars) // Only consume bottom bar insets
                     ) {
                         composable(Screen.Home.route) { HomeScreen() }
                         composable(Screen.Transactions.route) { TransactionsScreen() }

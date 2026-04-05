@@ -57,6 +57,7 @@ fun TransactionsScreen(
     val editingTransaction by viewModel.editingTransaction.collectAsStateWithLifecycle()
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {
@@ -77,28 +78,12 @@ fun TransactionsScreen(
         }
     ) { paddingValues ->
         LazyColumn(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    bottom = 96.dp,
-                    top = 16.dp
-                ),
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             contentPadding = paddingValues,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            // Section Header
-//                item {
-//                    Spacer(modifier = Modifier.height(8.dp))
-//                    Text(
-//                        text = "Recent Transactions",
-//                        style = MaterialTheme.typography.titleMedium,
-//                        color = MaterialTheme.colorScheme.onSurfaceVariant
-//                    )
-//                }
-
             if (state.transactions.isEmpty()) {
                 item {
                     Box(
@@ -118,9 +103,8 @@ fun TransactionsScreen(
                         positionalThreshold = { fullSize -> fullSize * 0.3f },
                         confirmValueChange = { value ->
                             if (value == SwipeToDismissBoxValue.EndToStart) {
-                                // Trigger your delete confirmation dialog or direct delete
                                 transactionToDelete = transaction
-                                false // Return false so the item doesn't disappear until confirmed
+                                false
                             } else {
                                 false
                             }
@@ -152,7 +136,6 @@ fun TransactionsScreen(
                             transaction,
                             modifier = Modifier.combinedClickable(
                                 onClick = {
-                                    // Navigate to edit transaction bottom sheet
                                     viewModel.onEditTransactionSelected(transaction)
                                 },
                                 onLongClick = {

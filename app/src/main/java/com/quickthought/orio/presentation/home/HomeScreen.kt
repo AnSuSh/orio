@@ -3,7 +3,6 @@ package com.quickthought.orio.presentation.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -47,6 +46,7 @@ fun HomeScreen(
     var budgetAnimKey by remember { mutableIntStateOf(0) }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {
@@ -61,68 +61,59 @@ fun HomeScreen(
             )
         },
     ) { innerPadding ->
-        Box(
+        LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
+            contentPadding = innerPadding,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LazyColumn(
-                modifier = modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
-                    bottom = 96.dp,
-                    top = 16.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Professional Overview Section
-                item {
-                    BalanceOverview(
-                        balance = state.totalBalance,
-                        income = state.totalIncome,
-                        expense = state.totalExpense
-                    )
-                }
+            // Professional Overview Section
+            item {
+                BalanceOverview(
+                    balance = state.totalBalance,
+                    income = state.totalIncome,
+                    expense = state.totalExpense
+                )
+            }
 
-                // Budget Progress Section
-                item {
-                    // We wrap this in a key. When budgetAnimKey changes, the animation restarts.
-                    key(budgetAnimKey) {
-                        BudgetProgressSection(
-                            totalExpenses = state.totalExpense,
-                            daysLeftInMonth = state.daysLeftInMonth,
-                            monthlyBudget = state.monthlyBudget,
-                            modifier = Modifier.clickable {
-                                showBudgetDialog = true
-                            }
-                        )
-                    }
-                }
-
-                // Section Header
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Recent Transactions",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                if (state.transactions.isEmpty()) {
-                    item {
-                        Box(
-                            Modifier.fillParentMaxHeight(0.5f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            EmptyTransactionsState()
+            // Budget Progress Section
+            item {
+                // We wrap this in a key. When budgetAnimKey changes, the animation restarts.
+                key(budgetAnimKey) {
+                    BudgetProgressSection(
+                        totalExpenses = state.totalExpense,
+                        daysLeftInMonth = state.daysLeftInMonth,
+                        monthlyBudget = state.monthlyBudget,
+                        modifier = Modifier.clickable {
+                            showBudgetDialog = true
                         }
+                    )
+                }
+            }
+
+            // Section Header
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Recent Transactions",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (state.transactions.isEmpty()) {
+                item {
+                    Box(
+                        Modifier.fillParentMaxHeight(0.5f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyTransactionsState()
                     }
-                } else {
-                    items(state.transactions.take(5), key = { it.transactionId }) { transaction ->
-                        TransactionItem(transaction)
-                    }
+                }
+            } else {
+                items(state.transactions.take(5), key = { it.transactionId }) { transaction ->
+                    TransactionItem(transaction)
                 }
             }
         }
