@@ -78,7 +78,7 @@ git clone [https://github.com/yourusername/orio-finance.git](https://github.com/
 ## 🤝 Contact
 [Shrinivasa Manjithaya]
 
-[LinkedIn Profile]([Your LinkedIn Profile Link](https://www.linkedin.com/in/shrinivasa-manjithaya-6855b6157))
+[LinkedIn Profile](https://www.linkedin.com/in/shrinivasa-manjithaya-6855b6157)
 
 [Email Address](amanjithayas@gmail.com)
 
