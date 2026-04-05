@@ -9,7 +9,7 @@ fun TransactionData.toTransactionDomain(): TransactionDomain {
         transactionId = id,
         amount = amount,
         type = TransactionType.valueOf(type),
-        category = category,
+        category = categoryId.ifEmpty { "other" },
         date = date,
         note = note
     )

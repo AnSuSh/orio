@@ -2,13 +2,20 @@ package com.quickthought.orio.presentation.transactions.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -21,8 +28,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.text.color
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
+import com.quickthought.orio.domain.model.transactionCategories
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +44,9 @@ fun EditTransactionSheet(
     var amount by remember { mutableStateOf(transaction.amount.toString()) }
     var note by remember { mutableStateOf(transaction.note) }
     var isIncome by remember { mutableStateOf(transaction.isIncome) }
+    var selectedCategory by remember {
+        mutableStateOf(transactionCategories.find { it.id == transaction.category } ?: transactionCategories.last())
+    }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -46,13 +58,15 @@ fun EditTransactionSheet(
                 "Edit Transaction", style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-
+            Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = amount,
                 onValueChange = { amount = it },
                 label = { Text("Amount") },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -85,6 +99,32 @@ fun EditTransactionSheet(
                 )
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 8.dp)
+            ) {
+                items(transactionCategories) { category ->
+                    FilterChip(
+                        selected = selectedCategory.id == category.id,
+                        onClick = { selectedCategory = category },
+                        label = { Text(category.name) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = category.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = if (selectedCategory.id == category.id)
+                                    category.color else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -94,12 +134,15 @@ fun EditTransactionSheet(
                 shape = MaterialTheme.shapes.medium,
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = {
                     val updated = transaction.copy(
                         amount = amount.toDoubleOrNull() ?: transaction.amount,
                         note = note,
                         type = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
+                        category = selectedCategory.id
                     )
                     onSave(updated)
                 },

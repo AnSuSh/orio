@@ -2,23 +2,27 @@ package com.quickthought.orio.presentation.transactions.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,8 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
-import com.quickthought.orio.ui.theme.ExpenseRed
-import com.quickthought.orio.ui.theme.IncomeGreen
+import com.quickthought.orio.domain.model.transactionCategories
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +53,7 @@ fun AddTransactionSheet(
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var isIncome by remember { mutableStateOf(false) }
+    var selectedCategory by remember { mutableStateOf(transactionCategories.first()) }
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -74,7 +78,7 @@ fun AddTransactionSheet(
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-
+            Spacer(modifier = Modifier.height(16.dp))
             // Amount Field
             OutlinedTextField(
                 value = amount,
@@ -96,6 +100,7 @@ fun AddTransactionSheet(
 //                )
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
             // Type Selection
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -136,7 +141,31 @@ fun AddTransactionSheet(
 //                    )
                 )
             }
-
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Select Category", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 8.dp)
+            ) {
+                items(transactionCategories) { category ->
+                    FilterChip(
+                        selected = selectedCategory.id == category.id,
+                        onClick = { selectedCategory = category },
+                        label = { Text(category.name) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = category.icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = if (selectedCategory.id == category.id)
+                                    category.color else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -149,7 +178,7 @@ fun AddTransactionSheet(
 //                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
 //                )
             )
-
+            Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
                     val valAmount = amount.toDoubleOrNull() ?: 0.0
@@ -158,7 +187,7 @@ fun AddTransactionSheet(
                             type = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
                             amount = valAmount,
                             note = note,
-                            category = "",
+                            category = selectedCategory.id,
                             date = System.currentTimeMillis()
                         )
                     )

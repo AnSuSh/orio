@@ -2,6 +2,7 @@ package com.quickthought.orio.core.di
 
 import android.app.Application
 import androidx.room.Room
+import com.quickthought.orio.data.local.MIGRATION_1_2
 import com.quickthought.orio.data.local.OrioDatabase
 import com.quickthought.orio.data.local.PreferenceManager
 import com.quickthought.orio.data.local.TransactionsDAO
@@ -24,7 +25,9 @@ object AppModule {
             app,
             OrioDatabase::class.java,
             OrioDatabase.DATABASE_NAME
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2)
+            .build()
     }
 
     @Provides
