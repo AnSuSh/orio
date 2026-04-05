@@ -71,7 +71,6 @@ fun AddTransactionSheet(
                 .padding(bottom = 32.dp)
                 .fillMaxWidth()
                 .navigationBarsPadding(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
                 text = "New Transaction",

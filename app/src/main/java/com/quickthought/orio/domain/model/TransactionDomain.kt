@@ -3,6 +3,7 @@ package com.quickthought.orio.domain.model
 import com.quickthought.orio.data.local.entity.TransactionData
 import com.quickthought.orio.domain.util.toDateString
 import java.util.Locale
+import kotlin.text.contains
 
 /**
  * Model to be consumed in UI and Domain layer.
@@ -35,5 +36,28 @@ fun TransactionDomain.toTransactionData(): TransactionData {
         date,
         note
     )
+}
+
+// Helper extension for readability
+fun TransactionDomain.matches(filters: TransactionFilterState): Boolean {
+    val matchesSearch = note.contains(filters.searchQuery, ignoreCase = true)
+    val matchesCategory =
+        filters.selectedCategory == null || category == filters.selectedCategory
+    val matchesType = when (filters.typeFilter) {
+        TransactionTypeFilter.ALL -> true
+        TransactionTypeFilter.INCOME -> isIncome
+        TransactionTypeFilter.EXPENSE -> !isIncome
+    }
+    return amount > 0 && matchesSearch && matchesCategory && matchesType
+}
+
+// Helper extension for correct sorting
+fun List<TransactionDomain>.applySort(sortBy: TransactionSort): List<TransactionDomain> {
+    return when (sortBy) {
+        TransactionSort.DATE_ASC -> sortedBy { it.date }
+        TransactionSort.DATE_DESC -> sortedByDescending { it.date }
+        TransactionSort.AMOUNT_ASC -> sortedBy { it.amount }
+        TransactionSort.AMOUNT_DESC -> sortedByDescending { it.amount }
+    }
 }
 

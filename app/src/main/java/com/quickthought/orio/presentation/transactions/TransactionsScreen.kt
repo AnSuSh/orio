@@ -1,10 +1,14 @@
 package com.quickthought.orio.presentation.transactions
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +21,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -39,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.presentation.transactions.components.AddTransactionSheet
 import com.quickthought.orio.presentation.transactions.components.EditTransactionSheet
+import com.quickthought.orio.presentation.transactions.components.FilterSection
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.ui.theme.ExpenseRed
@@ -49,7 +55,8 @@ fun TransactionsScreen(
     modifier: Modifier = Modifier,
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val filterState by viewModel.filterState.collectAsStateWithLifecycle()
+    val filteredTransactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState()
 
     var showSheet by remember { mutableStateOf(false) }
@@ -84,7 +91,20 @@ fun TransactionsScreen(
             contentPadding = paddingValues,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (state.transactions.isEmpty()) {
+            // --- STICKY HEADER SECTION ---
+            stickyHeader {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 2.dp // Subtle shadow when scrolling
+                ) {
+                    FilterSection(
+                        state = filterState,
+                        onFilterChange = { viewModel.updateFilters(it) }
+                    )
+                }
+            }
+            if (filteredTransactions.isEmpty()) {
                 item {
                     Box(
                         Modifier.fillParentMaxHeight(0.5f),
@@ -94,7 +114,7 @@ fun TransactionsScreen(
                     }
                 }
             } else {
-                items(state.transactions, key = { it.transactionId }) { transaction ->
+                items(filteredTransactions, key = { it.transactionId }) { transaction ->
 
                     var showOptionsDialog by remember { mutableStateOf(false) }
 
@@ -134,13 +154,22 @@ fun TransactionsScreen(
                     ) {
                         TransactionItem(
                             transaction,
-                            modifier = Modifier.combinedClickable(
-                                onClick = {
-                                    viewModel.onEditTransactionSelected(transaction)
-                                },
-                                onLongClick = {
-                                    showOptionsDialog = true
-                                })
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        viewModel.onEditTransactionSelected(transaction)
+                                    },
+                                    onLongClick = {
+                                        showOptionsDialog = true
+                                    })
+                                .animateItem(
+                                    fadeInSpec = tween(300),
+                                    placementSpec = spring(
+                                        stiffness = Spring.StiffnessLow, // Makes movement "flow" rather than "snap"
+                                        dampingRatio = Spring.DampingRatioLowBouncy
+                                    ),
+                                    fadeOutSpec = tween(200)
+                                )
                         )
 
                         if (showOptionsDialog) {
