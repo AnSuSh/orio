@@ -12,25 +12,35 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -42,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
 import com.quickthought.orio.domain.model.transactionCategories
+import com.quickthought.orio.domain.util.toDateString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,9 +65,14 @@ fun AddTransactionSheet(
     var note by remember { mutableStateOf("") }
     var isIncome by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(transactionCategories.first()) }
+    var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDate
+    )
 
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    var showDatePicker by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -93,10 +109,6 @@ fun AddTransactionSheet(
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
                 shape = MaterialTheme.shapes.medium,
-//                colors = OutlinedTextFieldDefaults.colors(
-//                    focusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
-//                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -117,11 +129,6 @@ fun AddTransactionSheet(
                             textAlign = TextAlign.Center
                         )
                     },
-//                    border = FilterChipDefaults.filterChipBorder(
-//                    colors = FilterChipDefaults.filterChipColors(
-//                        selectedContainerColor = ExpenseRed.copy(alpha = 0.1f),
-//                        selectedLabelColor = MaterialTheme.colorScheme.onSurface
-//                    )
                 )
                 FilterChip(
                     modifier = Modifier.weight(1f),
@@ -134,10 +141,6 @@ fun AddTransactionSheet(
                             textAlign = TextAlign.Center
                         )
                     },
-//                    colors = FilterChipDefaults.filterChipColors(
-//                        selectedContainerColor = IncomeGreen.copy(alpha = 0.1f),
-//                        selectedLabelColor = MaterialTheme.colorScheme.onSurface
-//                    )
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -165,6 +168,29 @@ fun AddTransactionSheet(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
+            OutlinedCard(
+                onClick = { showDatePicker = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.CalendarToday, contentDescription = null)
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text("Transaction Date", style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            selectedDate.toDateString(),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -172,10 +198,6 @@ fun AddTransactionSheet(
                 placeholder = { Text("e.g. Groceries") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
-//                colors = OutlinedTextFieldDefaults.colors(
-//                    focusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
-//                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
@@ -187,7 +209,7 @@ fun AddTransactionSheet(
                             amount = valAmount,
                             note = note,
                             category = selectedCategory.id,
-                            date = System.currentTimeMillis()
+                            date = selectedDate
                         )
                     )
                     focusManager.clearFocus()
@@ -205,6 +227,23 @@ fun AddTransactionSheet(
         // Auto-focus amount field when sheet opens
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
+        }
+
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        selectedDate = datePickerState.selectedDateMillis ?: selectedDate
+                        showDatePicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
         }
     }
 }

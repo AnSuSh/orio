@@ -31,6 +31,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,9 @@ fun TransactionsScreen(
     val filterState by viewModel.filterState.collectAsStateWithLifecycle()
     val filteredTransactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState()
+    val groupedTransactions = remember(filteredTransactions) {
+        derivedStateOf { filteredTransactions.groupBy { it.dateTimeString } }
+    }
 
     var showSheet by remember { mutableStateOf(false) }
     var transactionToDelete by remember { mutableStateOf<TransactionDomain?>(null) }
@@ -114,82 +118,96 @@ fun TransactionsScreen(
                     }
                 }
             } else {
-                items(filteredTransactions, key = { it.transactionId }) { transaction ->
-
-                    var showOptionsDialog by remember { mutableStateOf(false) }
-
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        initialValue = SwipeToDismissBoxValue.Settled,
-                        positionalThreshold = { fullSize -> fullSize * 0.3f },
-                        confirmValueChange = { value ->
-                            if (value == SwipeToDismissBoxValue.EndToStart) {
-                                transactionToDelete = transaction
-                                false
-                            } else {
-                                false
-                            }
+                groupedTransactions.value.forEach { (date, transactions) ->
+                    stickyHeader {
+                        Surface(
+                            Modifier.fillMaxWidth(),
+                            color = Color.Transparent
+                        ) {
+                            Text(
+                                date,
+                                Modifier.padding(8.dp),
+                                style = MaterialTheme.typography.labelMedium
+                            )
                         }
-                    )
+                    }
+                    items(transactions, key = { it.transactionId }) { transaction ->
 
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        enableDismissFromEndToStart = true,
-                        enableDismissFromStartToEnd = false,
-                        backgroundContent = {
-                            val color = ExpenseRed
-                            Box(
-                                Modifier
-                                    .fillMaxSize()
-                                    .background(color, MaterialTheme.shapes.medium)
-                                    .padding(horizontal = 20.dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = Color.White
-                                )
+                        var showOptionsDialog by remember { mutableStateOf(false) }
+
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            initialValue = SwipeToDismissBoxValue.Settled,
+                            positionalThreshold = { fullSize -> fullSize * 0.3f },
+                            confirmValueChange = { value ->
+                                if (value == SwipeToDismissBoxValue.EndToStart) {
+                                    transactionToDelete = transaction
+                                    false
+                                } else {
+                                    false
+                                }
                             }
-                        }
-                    ) {
-                        TransactionItem(
-                            transaction,
-                            modifier = Modifier
-                                .combinedClickable(
-                                    onClick = {
-                                        viewModel.onEditTransactionSelected(transaction)
-                                    },
-                                    onLongClick = {
-                                        showOptionsDialog = true
-                                    })
-                                .animateItem(
-                                    fadeInSpec = tween(300),
-                                    placementSpec = spring(
-                                        stiffness = Spring.StiffnessLow, // Makes movement "flow" rather than "snap"
-                                        dampingRatio = Spring.DampingRatioLowBouncy
-                                    ),
-                                    fadeOutSpec = tween(200)
-                                )
                         )
 
-                        if (showOptionsDialog) {
-                            AlertDialog(
-                                onDismissRequest = { showOptionsDialog = false },
-                                title = { Text("Transaction Options") },
-                                text = { Text("Choose an action for this transaction.") },
-                                confirmButton = {
-                                    TextButton(onClick = {
-                                        viewModel.onEditTransactionSelected(transaction)
-                                        showOptionsDialog = false
-                                    }) { Text("Edit") }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = {
-                                        transactionToDelete = transaction
-                                        showOptionsDialog = false
-                                    }) { Text("Delete", color = ExpenseRed) }
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            enableDismissFromEndToStart = true,
+                            enableDismissFromStartToEnd = false,
+                            backgroundContent = {
+                                val color = ExpenseRed
+                                Box(
+                                    Modifier
+                                        .fillMaxSize()
+                                        .background(color, MaterialTheme.shapes.medium)
+                                        .padding(horizontal = 20.dp),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = Color.White
+                                    )
                                 }
+                            }
+                        ) {
+                            TransactionItem(
+                                transaction,
+                                modifier = Modifier
+                                    .combinedClickable(
+                                        onClick = {
+                                            viewModel.onEditTransactionSelected(transaction)
+                                        },
+                                        onLongClick = {
+                                            showOptionsDialog = true
+                                        })
+                                    .animateItem(
+                                        fadeInSpec = tween(300),
+                                        placementSpec = spring(
+                                            stiffness = Spring.StiffnessLow, // Makes movement "flow" rather than "snap"
+                                            dampingRatio = Spring.DampingRatioLowBouncy
+                                        ),
+                                        fadeOutSpec = tween(200)
+                                    )
                             )
+
+                            if (showOptionsDialog) {
+                                AlertDialog(
+                                    onDismissRequest = { showOptionsDialog = false },
+                                    title = { Text("Transaction Options") },
+                                    text = { Text("Choose an action for this transaction.") },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            viewModel.onEditTransactionSelected(transaction)
+                                            showOptionsDialog = false
+                                        }) { Text("Edit") }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = {
+                                            transactionToDelete = transaction
+                                            showOptionsDialog = false
+                                        }) { Text("Delete", color = ExpenseRed) }
+                                    }
+                                )
+                            }
                         }
                     }
                 }
