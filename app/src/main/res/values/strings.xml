@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Orio</string>
+    <string name="save_action">Save</string>
 </resources>

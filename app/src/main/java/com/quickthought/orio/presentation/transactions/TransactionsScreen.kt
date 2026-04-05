@@ -1,6 +1,7 @@
 package com.quickthought.orio.presentation.transactions
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +38,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.presentation.transactions.components.AddTransactionSheet
+import com.quickthought.orio.presentation.transactions.components.EditTransactionSheet
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.ui.theme.ExpenseRed
@@ -52,6 +54,7 @@ fun TransactionsScreen(
 
     var showSheet by remember { mutableStateOf(false) }
     var transactionToDelete by remember { mutableStateOf<TransactionDomain?>(null) }
+    val editingTransaction by viewModel.editingTransaction.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -107,7 +110,12 @@ fun TransactionsScreen(
                 }
             } else {
                 items(state.transactions, key = { it.transactionId }) { transaction ->
+
+                    var showOptionsDialog by remember { mutableStateOf(false) }
+
                     val dismissState = rememberSwipeToDismissBoxState(
+                        initialValue = SwipeToDismissBoxValue.Settled,
+                        positionalThreshold = { fullSize -> fullSize * 0.3f },
                         confirmValueChange = { value ->
                             if (value == SwipeToDismissBoxValue.EndToStart) {
                                 // Trigger your delete confirmation dialog or direct delete
@@ -140,7 +148,37 @@ fun TransactionsScreen(
                             }
                         }
                     ) {
-                        TransactionItem(transaction)
+                        TransactionItem(
+                            transaction,
+                            modifier = Modifier.combinedClickable(
+                                onClick = {
+                                    // Navigate to edit transaction bottom sheet
+                                    viewModel.onEditTransactionSelected(transaction)
+                                },
+                                onLongClick = {
+                                    showOptionsDialog = true
+                                })
+                        )
+
+                        if (showOptionsDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showOptionsDialog = false },
+                                title = { Text("Transaction Options") },
+                                text = { Text("Choose an action for this transaction.") },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.onEditTransactionSelected(transaction)
+                                        showOptionsDialog = false
+                                    }) { Text("Edit") }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = {
+                                        transactionToDelete = transaction
+                                        showOptionsDialog = false
+                                    }) { Text("Delete", color = ExpenseRed) }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -173,6 +211,17 @@ fun TransactionsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { transactionToDelete = null }) { Text("Cancel") }
+            }
+        )
+    }
+
+    // Show Edit Sheet when a transaction is selected via Long Click -> Edit
+    editingTransaction?.let { transaction ->
+        EditTransactionSheet(
+            transaction = transaction,
+            onDismiss = { viewModel.onEditTransactionSelected(null) },
+            onSave = { updated ->
+                viewModel.updateTransaction(updated)
             }
         )
     }

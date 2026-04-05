@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.quickthought.orio.data.local.entity.TransactionData
 import kotlinx.coroutines.flow.Flow
 
@@ -18,4 +19,7 @@ interface TransactionsDAO {
 
     @Delete
     suspend fun deleteTransaction(transaction: TransactionData)
+
+    @Update
+    suspend fun updateTransaction(transaction: TransactionData)
 }

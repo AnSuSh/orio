@@ -21,6 +21,13 @@ class TransactionsViewModel @Inject constructor(
     private val _state = MutableStateFlow(TransactionsState())
     val state: StateFlow<TransactionsState> = _state.asStateFlow()
 
+    private val _editingTransaction = MutableStateFlow<TransactionDomain?>(null)
+    val editingTransaction = _editingTransaction.asStateFlow()
+
+    fun onEditTransactionSelected(transaction: TransactionDomain?) {
+        _editingTransaction.value = transaction
+    }
+
     init {
         loadTransactionHistory()
     }
@@ -31,6 +38,13 @@ class TransactionsViewModel @Inject constructor(
 
                 _state.update { it.copy(transactions = transactions) }
             }
+        }
+    }
+
+    fun updateTransaction(updatedTransaction: TransactionDomain) {
+        viewModelScope.launch {
+            repository.updateTransaction(updatedTransaction)
+            _editingTransaction.value = null // Clear state after save
         }
     }
 

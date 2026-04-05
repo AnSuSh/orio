@@ -26,4 +26,8 @@ class TransactionsRepositoryImpl @Inject constructor(private val dao: Transactio
     override suspend fun deleteTransaction(transaction: TransactionDomain) {
         dao.deleteTransaction(transaction.toTransactionData())
     }
+
+    override suspend fun updateTransaction(updatedTransaction: TransactionDomain) {
+        dao.updateTransaction(updatedTransaction.toTransactionData())
+    }
 }

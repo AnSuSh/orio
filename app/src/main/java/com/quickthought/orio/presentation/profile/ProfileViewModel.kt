@@ -33,11 +33,21 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    private fun observeDarkModeSetting(){
+    private fun observeDarkModeSetting() {
         viewModelScope.launch {
             preferenceManager.isDarkMode.collect { isDarkMode ->
                 _state.update { it.copy(isDarkMode = isDarkMode) }
             }
+        }
+    }
+
+    fun onSaveBudget(input: String) {
+        val amount = input.toDoubleOrNull()
+        if (amount != null && amount > 0) {
+            // Perform saving logic...
+            _state.value = _state.value.copy(saveSuccess = true)
+        } else {
+            _state.value = _state.value.copy(error = "Invalid amount")
         }
     }
 

@@ -26,10 +26,11 @@ import com.quickthought.orio.ui.theme.IncomeGreen
 
 @Composable
 fun TransactionItem(
-    transaction: TransactionDomain
+    transaction: TransactionDomain,
+    modifier: Modifier = Modifier
 ) {
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
