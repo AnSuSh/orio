@@ -3,6 +3,7 @@ package com.quickthought.orio.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
+import com.quickthought.orio.data.local.dao.TransactionsDAO
 import com.quickthought.orio.data.local.entity.TransactionData
 
 @Database(

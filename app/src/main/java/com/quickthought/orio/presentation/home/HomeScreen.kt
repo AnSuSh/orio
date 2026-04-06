@@ -24,14 +24,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.quickthought.orio.presentation.transactions.components.BalanceOverview
-import com.quickthought.orio.presentation.transactions.components.BudgetEditDialog
-import com.quickthought.orio.presentation.transactions.components.BudgetProgressSection
+import com.quickthought.orio.domain.model.TransactionDomain
+import com.quickthought.orio.domain.model.TransactionType
+import com.quickthought.orio.presentation.home.components.BalanceOverview
+import com.quickthought.orio.presentation.home.components.BudgetEditDialog
+import com.quickthought.orio.presentation.home.components.BudgetProgressSection
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
+import com.quickthought.orio.ui.theme.OrioTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +46,19 @@ fun HomeScreen(
 ) {
 
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    HomeContent(modifier, state) { newBudget ->
+        viewModel.saveMonthlyBudget(newBudget)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeContent(
+    modifier: Modifier = Modifier,
+    state: HomeState,
+    onSaveMonthlyBudget: (Double) -> Unit = {},
+) {
     var showBudgetDialog by remember { mutableStateOf(false) }
     // A key to force animation replay
     var budgetAnimKey by remember { mutableIntStateOf(0) }
@@ -127,10 +145,58 @@ fun HomeScreen(
                 budgetAnimKey++ // Trigger replay even if value didn't change
             },
             onSave = { newBudget ->
-                viewModel.saveMonthlyBudget(newBudget)
+                onSaveMonthlyBudget(newBudget)
                 showBudgetDialog = false
                 budgetAnimKey++
             }
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun HomeContentPrev() {
+    HomeContent(
+        state = HomeState(
+            totalIncome = 10000.0,
+            totalExpense = 5000.0,
+            monthlyBudget = 15000.0,
+            daysLeftInMonth = 10,
+            transactions = List(5) { i ->
+                TransactionDomain(
+                    transactionId = i,
+                    amount = (i + 1) * 100.0,
+                    category = "Category ${i + 1}",
+                    date = System.currentTimeMillis(),
+                    note = "Transaction ${i + 1}",
+                    type = TransactionType.INCOME
+                )
+            }
+        )
+    )
+}
+
+@Preview(uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun HomeContentPrevDark() {
+    OrioTheme {
+        HomeContent(
+            state = HomeState(
+                totalIncome = 10000.0,
+                totalExpense = 5000.0,
+                monthlyBudget = 15000.0,
+                daysLeftInMonth = 10,
+                transactions = List(5) { i ->
+                    TransactionDomain(
+                        transactionId = i,
+                        amount = (i + 1) * 100.0,
+                        category = "Category ${i + 1}",
+                        date = System.currentTimeMillis(),
+                        note = "Transaction ${i + 1}",
+                        type = TransactionType.INCOME
+                    )
+                }
+            )
         )
     }
 }

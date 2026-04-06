@@ -1,4 +1,4 @@
-package com.quickthought.orio.presentation.transactions.components
+package com.quickthought.orio.presentation.home.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
@@ -19,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.quickthought.orio.ui.theme.OrioTheme
 import java.util.Locale
 import kotlin.math.max
 
@@ -112,5 +114,41 @@ fun BudgetProgressSection(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun BudgetProgressPreviewHigh() {
+    OrioTheme {
+        BudgetProgressSection(
+            totalExpenses = 450000.0,
+            daysLeftInMonth = 10,
+            monthlyBudget = 500000.0
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun BudgetProgressPrevLow() {
+    OrioTheme {
+        BudgetProgressSection(
+            totalExpenses = 100000.0,
+            daysLeftInMonth = 20,
+            monthlyBudget = 500000.0
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun BudgetProgressPrevMedium() {
+    OrioTheme {
+        BudgetProgressSection(
+            totalExpenses = 300000.0,
+            daysLeftInMonth = 15,
+            monthlyBudget = 500000.0
+        )
     }
 }

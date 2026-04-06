@@ -1,4 +1,4 @@
-package com.quickthought.orio.presentation.transactions.components
+package com.quickthought.orio.presentation.home.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

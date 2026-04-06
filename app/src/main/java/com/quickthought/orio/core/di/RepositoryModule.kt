@@ -1,6 +1,6 @@
 package com.quickthought.orio.core.di
 
-import com.quickthought.orio.data.local.TransactionsDAO
+import com.quickthought.orio.data.local.dao.TransactionsDAO
 import com.quickthought.orio.data.repository.HomeRepositoryImpl
 import com.quickthought.orio.data.repository.ProfileRepositoryImpl
 import com.quickthought.orio.data.repository.TransactionsRepositoryImpl

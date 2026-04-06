@@ -5,9 +5,7 @@ import androidx.room.Room
 import com.quickthought.orio.data.local.MIGRATION_1_2
 import com.quickthought.orio.data.local.OrioDatabase
 import com.quickthought.orio.data.local.PreferenceManager
-import com.quickthought.orio.data.local.TransactionsDAO
-import com.quickthought.orio.data.repository.TransactionsRepositoryImpl
-import com.quickthought.orio.domain.repository.TransactionsRepository
+import com.quickthought.orio.data.local.dao.TransactionsDAO
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

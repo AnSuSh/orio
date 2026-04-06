@@ -1,4 +1,4 @@
-package com.quickthought.orio.presentation.transactions.components
+package com.quickthought.orio.presentation.home.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,11 +10,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.quickthought.orio.ui.theme.ExpenseRed
 import com.quickthought.orio.ui.theme.IncomeGreen
@@ -72,6 +74,41 @@ fun SummaryItem(label: String, amount: Double, color: Color, modifier: Modifier)
             "₹${String.format(Locale.getDefault(), "%.2f", amount)}",
             style = MaterialTheme.typography.titleMedium,
             color = color
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun BalanceOverviewPrev() {
+    BalanceOverview(
+        balance = 1250.0,
+        income = 5000.0,
+        expense = 3750.0
+    )
+}
+
+@Preview
+@Composable
+private fun SummaryPreview() {
+    SummaryItem(
+        label = "Income",
+        amount = 5000.0,
+        color = IncomeGreen,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Preview
+@Composable
+private fun BalancePreDark() {
+    MaterialTheme(
+        colorScheme = darkColorScheme()
+    ) {
+        BalanceOverview(
+            balance = 1250.0,
+            income = 5000.0,
+            expense = 3750.0
         )
     }
 }

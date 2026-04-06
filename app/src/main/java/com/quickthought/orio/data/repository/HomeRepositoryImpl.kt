@@ -1,6 +1,6 @@
 package com.quickthought.orio.data.repository
 
-import com.quickthought.orio.data.local.TransactionsDAO
+import com.quickthought.orio.data.local.dao.TransactionsDAO
 import com.quickthought.orio.data.mapper.toTransactionDomain
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.repository.HomeRepository

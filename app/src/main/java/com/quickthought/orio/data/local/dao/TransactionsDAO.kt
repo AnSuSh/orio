@@ -1,4 +1,4 @@
-package com.quickthought.orio.data.local
+package com.quickthought.orio.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -14,7 +14,7 @@ interface TransactionsDAO {
     @Query("SELECT * FROM transactions ORDER BY date DESC")
     fun getAllTransactions(): Flow<List<TransactionData>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertTransaction(transaction: TransactionData)
 
     @Delete
