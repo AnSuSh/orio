@@ -14,7 +14,10 @@ data class TransactionDomain(
     val type: TransactionType,
     val category: String,
     val date: Long,
-    val note: String = ""
+    val note: String = "",
+    val isSynced: Boolean = false,
+    val remoteId: String? = null,
+    val lastModified: Long = System.currentTimeMillis()
 ) {
     val isIncome: Boolean = type == TransactionType.INCOME
 
@@ -34,7 +37,10 @@ fun TransactionDomain.toTransactionData(): TransactionData {
         type.name,
         category,
         date,
-        note
+        note,
+        isSynced,
+        remoteId,
+        lastModified
     )
 }
 

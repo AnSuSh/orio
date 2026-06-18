@@ -11,6 +11,9 @@ fun TransactionData.toTransactionDomain(): TransactionDomain {
         type = TransactionType.valueOf(type),
         category = categoryId.ifEmpty { "other" },
         date = date,
-        note = note
+        note = note,
+        isSynced = isSynced,
+        remoteId = remoteId,
+        lastModified = lastModified
     )
 }

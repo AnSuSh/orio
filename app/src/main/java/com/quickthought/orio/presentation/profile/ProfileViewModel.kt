@@ -23,6 +23,7 @@ class ProfileViewModel @Inject constructor(
     init {
         observeBudget()
         observeDarkModeSetting()
+        observePremiumStatus()
     }
 
     private fun observeBudget() {
@@ -37,6 +38,14 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             preferenceManager.isDarkMode.collect { isDarkMode ->
                 _state.update { it.copy(isDarkMode = isDarkMode) }
+            }
+        }
+    }
+
+    private fun observePremiumStatus() {
+        viewModelScope.launch {
+            preferenceManager.isPremium.collect { isPremium ->
+                _state.update { it.copy(isPremium = isPremium) }
             }
         }
     }
@@ -61,6 +70,12 @@ class ProfileViewModel @Inject constructor(
     fun saveDarkModeSetting(isDarkMode: Boolean) {
         viewModelScope.launch {
             preferenceManager.saveDarkModeSetting(isDarkMode)
+        }
+    }
+
+    fun savePremiumStatus(isPremium: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.savePremiumStatus(isPremium)
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.quickthought.orio.presentation.home
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.domain.model.TransactionDomain
@@ -34,9 +38,12 @@ import com.quickthought.orio.domain.model.TransactionType
 import com.quickthought.orio.presentation.home.components.BalanceOverview
 import com.quickthought.orio.presentation.home.components.BudgetEditDialog
 import com.quickthought.orio.presentation.home.components.BudgetProgressSection
+import com.quickthought.orio.presentation.home.components.SmsTrackingNudge
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.ui.theme.OrioTheme
+import android.Manifest
+import android.content.pm.PackageManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,6 +69,22 @@ private fun HomeContent(
     var showBudgetDialog by remember { mutableStateOf(false) }
     // A key to force animation replay
     var budgetAnimKey by remember { mutableIntStateOf(0) }
+
+    val context = LocalContext.current
+    var hasSmsPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECEIVE_SMS
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        hasSmsPermission = permissions[Manifest.permission.RECEIVE_SMS] == true
+    }
 
     Scaffold(
         modifier = modifier,
@@ -105,6 +128,21 @@ private fun HomeContent(
                         monthlyBudget = state.monthlyBudget,
                         modifier = Modifier.clickable {
                             showBudgetDialog = true
+                        }
+                    )
+                }
+            }
+
+            if (!hasSmsPermission) {
+                item {
+                    SmsTrackingNudge(
+                        onEnableClick = {
+                            launcher.launch(
+                                arrayOf(
+                                    Manifest.permission.RECEIVE_SMS,
+                                    Manifest.permission.READ_SMS
+                                )
+                            )
                         }
                     )
                 }

@@ -8,7 +8,7 @@ import com.quickthought.orio.data.local.entity.TransactionData
 
 @Database(
     entities = [TransactionData::class],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class OrioDatabase : RoomDatabase() {
@@ -28,5 +28,13 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
                 ALTER TABLE transactions RENAME COLUMN category TO categoryId;
             """.trimIndent()
         )
+    }
+}
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE transactions ADD COLUMN isSynced INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE transactions ADD COLUMN remoteId TEXT")
+        db.execSQL("ALTER TABLE transactions ADD COLUMN lastModified INTEGER NOT NULL DEFAULT 0")
     }
 }

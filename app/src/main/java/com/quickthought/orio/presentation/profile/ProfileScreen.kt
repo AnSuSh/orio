@@ -106,6 +106,21 @@ fun ProfileScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Premium Toggle (for demo/testing)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Orio Premium (Trial)")
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = state.isPremium,
+                        onCheckedChange = { viewModel.savePremiumStatus(it) }
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Budget Input

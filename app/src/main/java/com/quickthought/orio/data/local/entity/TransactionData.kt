@@ -10,5 +10,8 @@ data class TransactionData(
     val type: String, // "INCOME" or "EXPENSE"
     val categoryId: String = "other",
     val date: Long = System.currentTimeMillis(),
-    val note: String = ""
+    val note: String = "",
+    val isSynced: Boolean = false,
+    val remoteId: String? = null,
+    val lastModified: Long = System.currentTimeMillis()
 )

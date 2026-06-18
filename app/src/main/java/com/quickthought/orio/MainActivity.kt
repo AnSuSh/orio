@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.quickthought.orio.presentation.Screen
+import com.quickthought.orio.presentation.analytics.AnalyticsScreen
 import com.quickthought.orio.presentation.home.HomeScreen
 import com.quickthought.orio.presentation.profile.ProfileScreen
 import com.quickthought.orio.presentation.profile.ProfileViewModel
@@ -46,7 +47,7 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                val items = listOf(Screen.Home, Screen.Transactions, Screen.Profile)
+                val items = listOf(Screen.Home, Screen.Transactions, Screen.Analytics, Screen.Profile)
 
                 Scaffold(
                     bottomBar = {
@@ -79,6 +80,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable(Screen.Home.route) { HomeScreen() }
                         composable(Screen.Transactions.route) { TransactionsScreen() }
+                        composable(Screen.Analytics.route) { AnalyticsScreen() }
                         composable(Screen.Profile.route) { ProfileScreen() }
                     }
                 }

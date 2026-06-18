@@ -16,6 +16,7 @@ class PreferenceManager @Inject constructor(
     private val Context.dataStore by preferencesDataStore(name = "user_settings")
     private val budgetKey = doublePreferencesKey("monthly_budget")
     private val darkModeKey = booleanPreferencesKey("dark_mode")
+    private val isPremiumKey = booleanPreferencesKey("is_premium")
 
     // Read the budget (returns a Flow)
     val monthlyBudget: Flow<Double> = context.dataStore.data
@@ -28,6 +29,11 @@ class PreferenceManager @Inject constructor(
             preferences[darkModeKey] ?: false // Default value
         }
 
+    val isPremium: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[isPremiumKey] ?: false // Default value
+        }
+
     // Save the budget
     suspend fun saveBudget(amount: Double) {
         context.dataStore.edit { preferences ->
@@ -38,6 +44,12 @@ class PreferenceManager @Inject constructor(
     suspend fun saveDarkModeSetting(isDarkMode: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[darkModeKey] = isDarkMode
+        }
+    }
+
+    suspend fun savePremiumStatus(isPremium: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[isPremiumKey] = isPremium
         }
     }
 }
