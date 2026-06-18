@@ -26,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import com.quickthought.orio.domain.model.Category
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.transactionCategories
-import com.quickthought.orio.ui.theme.ExpenseRed
-import com.quickthought.orio.ui.theme.IncomeGreen
+import com.quickthought.orio.ui.theme.OrioExpense
+import com.quickthought.orio.ui.theme.OrioIncome
 
 @Composable
 fun TransactionItem(
@@ -97,7 +97,7 @@ fun TransactionItem(
                     text = "${if (transaction.isIncome) "+" else "-"} ${transaction.localizedPriceString}",
                     style = MaterialTheme.typography.titleLarge,
                     // Using your Primary for Income and Error for Expense
-                    color = if (transaction.isIncome) IncomeGreen else ExpenseRed
+                    color = if (transaction.isIncome) OrioIncome else OrioExpense
                 )
             }
         }

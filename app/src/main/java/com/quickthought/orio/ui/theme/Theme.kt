@@ -8,29 +8,26 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = OrioPrimary,
+    primary = OrioPrimaryDark,
     secondary = OrioSecondary,
-    tertiary = OrioTertiary,
-    background = Slate900,
-    surface = Color(0xFF1E293B), // Slightly lighter than background for cards
-    onPrimary = White,
-    onBackground = White,
-    onSurface = White
+    background = OrioBackgroundDark,
+    surface = OrioSurfaceDark,
+    onPrimary = OrioOnPrimaryDark,
+    onBackground = OrioOnSurfaceDark,
+    onSurface = OrioOnSurfaceDark
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = OrioPrimary,
     secondary = OrioSecondary,
-    tertiary = OrioTertiary,
-    background = Color(0xFFF8FAFC),
-    surface = White,
-    onPrimary = White,
-    onBackground = Slate900,
-    onSurface = Slate900
+    background = OrioBackground,
+    surface = OrioSurface,
+    onPrimary = OrioOnPrimary,
+    onBackground = OrioOnSurface,
+    onSurface = OrioOnSurface
 )
 
 @Composable
@@ -45,13 +42,14 @@ fun OrioTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = OrioTypography,
         content = content
     )
 }

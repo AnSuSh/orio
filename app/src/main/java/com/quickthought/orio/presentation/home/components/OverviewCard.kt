@@ -18,8 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.quickthought.orio.ui.theme.ExpenseRed
-import com.quickthought.orio.ui.theme.IncomeGreen
+import com.quickthought.orio.ui.theme.OrioExpense
+import com.quickthought.orio.ui.theme.OrioIncome
 import java.util.Locale
 
 @Composable
@@ -52,13 +52,13 @@ fun BalanceOverview(
                 SummaryItem(
                     label = "Income",
                     amount = income,
-                    color = IncomeGreen, // Your custom color
+                    color = OrioIncome, // Your custom color
                     modifier = Modifier.weight(1f)
                 )
                 SummaryItem(
                     label = "Expense",
                     amount = expense,
-                    color = ExpenseRed, // Your custom color
+                    color = OrioExpense, // Your custom color
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -94,7 +94,7 @@ private fun SummaryPreview() {
     SummaryItem(
         label = "Income",
         amount = 5000.0,
-        color = IncomeGreen,
+        color = OrioIncome,
         modifier = Modifier.fillMaxWidth()
     )
 }

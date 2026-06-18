@@ -48,7 +48,7 @@ import com.quickthought.orio.presentation.transactions.components.EditTransactio
 import com.quickthought.orio.presentation.transactions.components.FilterSection
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
-import com.quickthought.orio.ui.theme.ExpenseRed
+import com.quickthought.orio.ui.theme.OrioExpense
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,7 +153,7 @@ fun TransactionsScreen(
                             enableDismissFromEndToStart = true,
                             enableDismissFromStartToEnd = false,
                             backgroundContent = {
-                                val color = ExpenseRed
+                                val color = OrioExpense
                                 Box(
                                     Modifier
                                         .fillMaxSize()
@@ -204,7 +204,7 @@ fun TransactionsScreen(
                                         TextButton(onClick = {
                                             transactionToDelete = transaction
                                             showOptionsDialog = false
-                                        }) { Text("Delete", color = ExpenseRed) }
+                                        }) { Text("Delete", color = OrioExpense) }
                                     }
                                 )
                             }
@@ -237,7 +237,7 @@ fun TransactionsScreen(
                 TextButton(onClick = {
                     viewModel.deleteTransaction(transaction)
                     transactionToDelete = null
-                }) { Text("Delete", color = ExpenseRed) }
+                }) { Text("Delete", color = OrioExpense) }
             },
             dismissButton = {
                 TextButton(onClick = { transactionToDelete = null }) { Text("Cancel") }

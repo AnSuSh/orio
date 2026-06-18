@@ -2,21 +2,25 @@ package com.quickthought.orio.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Brand Colors
-val OrioPrimary = Color(0xFF2461FF)
-val OrioSecondary = Color(0xFF00D09E)    // Mint Success (Income)
-val OrioTertiary = Color(0xFFFF565E)     // Soft Coral (Expense)
+// Zen Wealth Palette - Light
+val OrioPrimary = Color(0xFF1A237E)      // Deep Indigo
+val OrioOnPrimary = Color(0xFFFFFFFF)
+val OrioPrimaryContainer = Color(0xFFE8EAF6)
+val OrioOnPrimaryContainer = Color(0xFF1A237E)
 
-// Neutral Palette
-val Slate900 = Color(0xFF0F172A)
-val Slate700 = Color(0xFF334155)
-val Slate100 = Color(0xFFF1F5F9)
-val White = Color(0xFFFFFFFF)
-//val Black = Color(0xFF000000)
+val OrioSecondary = Color(0xFFD4AF37)    // Orio Gold
+val OrioOnSecondary = Color(0xFF000000)
 
-// Functional Colors
-val IncomeGreen = OrioSecondary
-val ExpenseRed = OrioTertiary
+val OrioBackground = Color(0xFFFBFBFE)   // Off-White/Warm Grey
+val OrioSurface = Color(0xFFFFFFFF)
+val OrioOnSurface = Color(0xFF1C1B1F)
 
-val lightSurface = Slate100
-val deepDarkBackground = Slate900
+val OrioExpense = Color(0xFFE57373)      // Soft Coral
+val OrioIncome = Color(0xFF81C784)       // Emerald Green
+
+// Dark Mode Palette
+val OrioPrimaryDark = Color(0xFFC5CAE9)
+val OrioOnPrimaryDark = Color(0xFF1A237E)
+val OrioBackgroundDark = Color(0xFF121212)
+val OrioSurfaceDark = Color(0xFF1E1E1E)
+val OrioOnSurfaceDark = Color(0xFFE6E1E5)
