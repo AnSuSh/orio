@@ -44,6 +44,7 @@ import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.ui.theme.OrioTheme
 import android.Manifest
 import android.content.pm.PackageManager
+import com.quickthought.orio.presentation.util.OrioTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,17 +90,7 @@ private fun HomeContent(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Orio - Dashboard",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            )
+            OrioTopAppBar("Orio - Dashboard")
         },
     ) { innerPadding ->
         LazyColumn(
@@ -191,30 +182,32 @@ private fun HomeContent(
     }
 }
 
-@Preview
+@Preview(showSystemUi = true)
 @Composable
 private fun HomeContentPrev() {
-    HomeContent(
-        state = HomeState(
-            totalIncome = 10000.0,
-            totalExpense = 5000.0,
-            monthlyBudget = 15000.0,
-            daysLeftInMonth = 10,
-            transactions = List(5) { i ->
-                TransactionDomain(
-                    transactionId = i,
-                    amount = (i + 1) * 100.0,
-                    category = "Category ${i + 1}",
-                    date = System.currentTimeMillis(),
-                    note = "Transaction ${i + 1}",
-                    type = TransactionType.INCOME
-                )
-            }
+    OrioTheme {
+        HomeContent(
+            state = HomeState(
+                totalIncome = 10000.0,
+                totalExpense = 5000.0,
+                monthlyBudget = 15000.0,
+                daysLeftInMonth = 10,
+                transactions = List(5) { i ->
+                    TransactionDomain(
+                        transactionId = i,
+                        amount = (i + 1) * 100.0,
+                        category = "Category ${i + 1}",
+                        date = System.currentTimeMillis(),
+                        note = "Transaction ${i + 1}",
+                        type = TransactionType.INCOME
+                    )
+                }
+            )
         )
-    )
+    }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES)
+@Preview(uiMode = UI_MODE_NIGHT_YES, showSystemUi = true)
 @Composable
 private fun HomeContentPrevDark() {
     OrioTheme {

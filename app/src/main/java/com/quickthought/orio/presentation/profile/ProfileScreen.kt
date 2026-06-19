@@ -42,10 +42,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_NO
 import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.R
+import com.quickthought.orio.presentation.util.OrioTopAppBar
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,14 +68,10 @@ fun ProfileScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Orio - Profile",
-                        style = MaterialTheme.typography.headlineSmall
+                    OrioTopAppBar(
+                        title = "Orio - Profile",
                     )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                }
             )
         },
     ) { innerPadding ->
@@ -168,4 +166,16 @@ fun ProfileScreen(
             }
         }
     }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+private fun ProfileScreenPrev() {
+    ProfileScreen()
+}
+
+@Preview(uiMode = UI_MODE_NIGHT_YES, showSystemUi = true)
+@Composable
+private fun ProfileScreenPrevDark() {
+    ProfileScreen()
 }

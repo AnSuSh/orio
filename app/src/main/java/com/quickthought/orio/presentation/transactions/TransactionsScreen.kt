@@ -27,7 +27,6 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
@@ -48,6 +47,7 @@ import com.quickthought.orio.presentation.transactions.components.EditTransactio
 import com.quickthought.orio.presentation.transactions.components.FilterSection
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
+import com.quickthought.orio.presentation.util.OrioTopAppBar
 import com.quickthought.orio.ui.theme.OrioExpense
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,15 +71,7 @@ fun TransactionsScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Orio - Transactions",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                title = { OrioTopAppBar("Orio - Transactions") }
             )
         },
         floatingActionButton = {

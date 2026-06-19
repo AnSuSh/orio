@@ -10,31 +10,66 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = OrioPrimaryDark,
-    secondary = OrioSecondary,
-    background = OrioBackgroundDark,
-    surface = OrioSurfaceDark,
-    onPrimary = OrioOnPrimaryDark,
-    onBackground = OrioOnSurfaceDark,
-    onSurface = OrioOnSurfaceDark
+private val ZenWealthDarkColorScheme = darkColorScheme(
+    primary = ZenPrimaryDark,
+    onPrimary = ZenOnPrimaryDark,
+    primaryContainer = ZenPrimaryContainerDark,
+    onPrimaryContainer = ZenOnPrimaryContainerDark,
+    secondary = ZenSecondaryDark,
+    onSecondary = ZenOnSecondaryDark,
+    secondaryContainer = ZenSecondaryContainerDark,
+    onSecondaryContainer = ZenOnSecondaryContainerDark,
+    tertiary = ZenTertiaryDark,
+    onTertiary = ZenOnTertiaryDark,
+    tertiaryContainer = ZenTertiaryContainerDark,
+    onTertiaryContainer = ZenOnTertiaryContainerDark,
+    error = ZenErrorDark,
+    onError = ZenOnErrorDark,
+    errorContainer = ZenErrorContainerDark,
+    onErrorContainer = ZenOnErrorContainerDark,
+    background = ZenBackgroundDark,
+    onBackground = ZenOnBackgroundDark,
+    surface = ZenSurfaceDark,
+    onSurface = ZenOnSurfaceDark,
+    surfaceVariant = ZenSurfaceVariantDark,
+    onSurfaceVariant = ZenOnSurfaceVariantDark,
+    outline = ZenOutlineDark,
+    inverseSurface = ZenInverseSurfaceDark,
+    inverseOnSurface = ZenInverseOnSurfaceDark
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = OrioPrimary,
-    secondary = OrioSecondary,
-    background = OrioBackground,
-    surface = OrioSurface,
-    onPrimary = OrioOnPrimary,
-    onBackground = OrioOnSurface,
-    onSurface = OrioOnSurface
+private val ZenWealthLightColorScheme = lightColorScheme(
+    primary = ZenPrimaryLight,
+    onPrimary = ZenOnPrimaryLight,
+    primaryContainer = ZenPrimaryContainerLight,
+    onPrimaryContainer = ZenOnPrimaryContainerLight,
+    secondary = ZenSecondaryLight,
+    onSecondary = ZenOnSecondaryLight,
+    secondaryContainer = ZenSecondaryContainerLight,
+    onSecondaryContainer = ZenOnSecondaryContainerLight,
+    tertiary = ZenTertiaryLight,
+    onTertiary = ZenOnTertiaryLight,
+    tertiaryContainer = ZenTertiaryContainerLight,
+    onTertiaryContainer = ZenOnTertiaryContainerLight,
+    error = ZenErrorLight,
+    onError = ZenOnErrorLight,
+    errorContainer = ZenErrorContainerLight,
+    onErrorContainer = ZenOnErrorContainerLight,
+    background = ZenBackgroundLight,
+    onBackground = ZenOnBackgroundLight,
+    surface = ZenSurfaceLight,
+    onSurface = ZenOnSurfaceLight,
+    surfaceVariant = ZenSurfaceVariantLight,
+    onSurfaceVariant = ZenOnSurfaceVariantLight,
+    outline = ZenOutlineLight,
+    inverseSurface = ZenInverseSurfaceLight,
+    inverseOnSurface = ZenInverseOnSurfaceLight
 )
 
 @Composable
 fun OrioTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Keep dynamicColor false if you want Orio's specific brand colors to shine
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = false, // Set to false to prioritize Zen Wealth identity
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -43,13 +78,22 @@ fun OrioTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> ZenWealthDarkColorScheme
+        else -> ZenWealthLightColorScheme
     }
+//    val view = LocalView.current
+//    if (!view.isInEditMode) {
+//        SideEffect {
+//            val window = (view.context as Activity).window
+//            window.statusBarColor = colorScheme.primary.toArgb()
+//            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+//        }
+//    }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = OrioTypography,
+        shapes = OrioShapes,
         content = content
     )
 }

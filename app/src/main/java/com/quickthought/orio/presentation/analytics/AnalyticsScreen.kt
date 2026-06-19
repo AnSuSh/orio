@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.quickthought.orio.presentation.util.OrioTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +43,7 @@ fun AnalyticsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Analytics") })
+            OrioTopAppBar(title = "Orio - Analytics")
         }
     ) { padding ->
         if (!state.isPremium) {

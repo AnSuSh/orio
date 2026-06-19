@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.quickthought.orio.ui.theme.OrioGold
 import com.quickthought.orio.ui.theme.OrioTheme
 import java.util.Locale
 import kotlin.math.max
@@ -44,9 +46,9 @@ fun BudgetProgressSection(
 
     // Dynamic Coloring Logic
     val targetColor = when {
-        progressRaw < 0.5f -> MaterialTheme.colorScheme.secondary // Green-ish (OrioSecondary)
-        progressRaw < 0.8f -> MaterialTheme.colorScheme.primary   // Blue (OrioPrimary)
-        else -> MaterialTheme.colorScheme.tertiary               // Red (OrioTertiary)
+        progressRaw < 0.5f -> OrioGold // Green-ish (OrioSecondary)
+        progressRaw < 0.8f -> MaterialTheme.colorScheme.tertiary   // Blue (OrioPrimary)
+        else -> MaterialTheme.colorScheme.error               // Red (OrioTertiary)
     }
 
     val animatedColor by animateColorAsState(
@@ -57,7 +59,6 @@ fun BudgetProgressSection(
 
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -70,7 +71,6 @@ fun BudgetProgressSection(
                 Text(
                     text = "Monthly Budget",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "₹${totalExpenses.toInt()} / ₹${monthlyBudget.toInt()}",
