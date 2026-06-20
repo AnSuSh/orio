@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.navigationBars
@@ -17,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.quickthought.orio.domain.model.AppTheme
 import com.quickthought.orio.presentation.Screen
 import com.quickthought.orio.presentation.analytics.AnalyticsScreen
 import com.quickthought.orio.presentation.home.HomeScreen
@@ -45,7 +46,13 @@ class MainActivity : ComponentActivity() {
             val profileViewModel = hiltViewModel<ProfileViewModel>()
             val state by profileViewModel.state.collectAsStateWithLifecycle()
 
-            MainAppScreen(state.isDarkMode)
+            val darkTheme = when (state.appTheme) {
+                AppTheme.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+                AppTheme.LIGHT -> false
+                AppTheme.DARK -> true
+            }
+
+            MainAppScreen(darkTheme)
         }
     }
 }

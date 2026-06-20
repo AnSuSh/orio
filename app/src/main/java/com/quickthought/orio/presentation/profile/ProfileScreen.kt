@@ -19,13 +19,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,14 +40,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_NO
-import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.R
+import com.quickthought.orio.domain.model.AppTheme
 import com.quickthought.orio.presentation.util.OrioTopAppBar
 import kotlin.math.roundToInt
 
@@ -92,16 +90,26 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 // Dark Mode toggle
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Always on Dark Mode")
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Switch(
-                        checked = state.isDarkMode,
-                        onCheckedChange = { viewModel.saveDarkModeSetting(it) }
-                    )
+                Text("Select the App's Theme")
+                Spacer(modifier = Modifier.width(8.dp))
+                SingleChoiceSegmentedButtonRow {
+                    val themeOptions = AppTheme.entries
+                    val themeLabels = listOf("System", "Light", "Dark")
+                    themeOptions.forEachIndexed { index, theme ->
+                        val isSelected = state.appTheme == theme
+                        val label = themeLabels[index]
+                        SegmentedButton(
+                            selected = isSelected,
+                            onClick = {
+                                viewModel.saveThemeSetting(theme)
+                            },
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = themeOptions.size
+                            ),
+                            label = { Text(label) }
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -166,16 +174,4 @@ fun ProfileScreen(
             }
         }
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-private fun ProfileScreenPrev() {
-    ProfileScreen()
-}
-
-@Preview(uiMode = UI_MODE_NIGHT_YES, showSystemUi = true)
-@Composable
-private fun ProfileScreenPrevDark() {
-    ProfileScreen()
 }

@@ -3,6 +3,7 @@ package com.quickthought.orio.presentation.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quickthought.orio.data.local.PreferenceManager
+import com.quickthought.orio.domain.model.AppTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,7 @@ class ProfileViewModel @Inject constructor(
 
     init {
         observeBudget()
-        observeDarkModeSetting()
+        observeThemeSetting()
         observePremiumStatus()
     }
 
@@ -34,10 +35,10 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    private fun observeDarkModeSetting() {
+    private fun observeThemeSetting() {
         viewModelScope.launch {
-            preferenceManager.isDarkMode.collect { isDarkMode ->
-                _state.update { it.copy(isDarkMode = isDarkMode) }
+            preferenceManager.appTheme.collect { theme ->
+                _state.update { it.copy(appTheme = theme) }
             }
         }
     }
@@ -67,9 +68,9 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun saveDarkModeSetting(isDarkMode: Boolean) {
+    fun saveThemeSetting(theme: AppTheme) {
         viewModelScope.launch {
-            preferenceManager.saveDarkModeSetting(isDarkMode)
+            preferenceManager.saveTheme(theme)
         }
     }
 

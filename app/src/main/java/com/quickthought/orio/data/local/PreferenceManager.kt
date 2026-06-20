@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.quickthought.orio.domain.model.AppTheme
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,7 +17,7 @@ class PreferenceManager @Inject constructor(
 ) {
     private val Context.dataStore by preferencesDataStore(name = "user_settings")
     private val budgetKey = doublePreferencesKey("monthly_budget")
-    private val darkModeKey = booleanPreferencesKey("dark_mode")
+    private val themeKey = intPreferencesKey("app_theme")
     private val isPremiumKey = booleanPreferencesKey("is_premium")
 
     // Read the budget (returns a Flow)
@@ -24,9 +26,10 @@ class PreferenceManager @Inject constructor(
             preferences[budgetKey] ?: 5000.0 // Default value
         }
 
-    val isDarkMode: Flow<Boolean> = context.dataStore.data
+    val appTheme: Flow<AppTheme> = context.dataStore.data
         .map { preferences ->
-            preferences[darkModeKey] ?: false // Default value
+            val themeIndex = preferences[themeKey] ?: AppTheme.FOLLOW_SYSTEM.ordinal
+            AppTheme.entries.getOrElse(themeIndex) { AppTheme.FOLLOW_SYSTEM }
         }
 
     val isPremium: Flow<Boolean> = context.dataStore.data
@@ -41,9 +44,9 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    suspend fun saveDarkModeSetting(isDarkMode: Boolean) {
+    suspend fun saveTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
-            preferences[darkModeKey] = isDarkMode
+            preferences[themeKey] = theme.ordinal
         }
     }
 
