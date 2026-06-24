@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.quickthought.orio.core.OrioLogger
 import com.quickthought.orio.domain.model.AppTheme
 import com.quickthought.orio.domain.util.SmsEntityExtractor
 import com.quickthought.orio.presentation.Screen
@@ -49,7 +50,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Pre-download ML Kit model
         CoroutineScope(Dispatchers.IO).launch {
             smsEntityExtractor.downloadModel()
@@ -66,6 +67,9 @@ class MainActivity : ComponentActivity() {
                 AppTheme.DARK -> true
             }
 
+            OrioLogger.infoLog("Main Activity Finished!", state.appTheme, darkTheme)
+            OrioLogger.errorLog("Main Activity Finished!", state.appTheme, darkTheme)
+            OrioLogger.debugLog("Main Activity Finished!", state.appTheme, darkTheme)
             MainAppScreen(darkTheme)
         }
     }

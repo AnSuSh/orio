@@ -121,6 +121,7 @@ dependencies {
 
     implementation(libs.coil.kt)
     implementation(libs.mlkit.entity.extraction)
+    implementation(libs.timber.logging)
     implementation(libs.kotlinx.coroutines.play.services)
 
     // Supabase

@@ -29,6 +29,8 @@ squareupRetrofit = "3.0.0"
 squareupOkHttp3 = "4.12.0"
 # Image Loading (For Crypto Icons)
 coilKT = "2.4.0"
+# Logging
+timberLogs = "5.0.1"
 
 # Testing
 coroutinesTest = "1.10.2"
@@ -85,6 +87,7 @@ squareup-okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.re
 coil-kt = { group= "io.coil-kt", name = "coil-compose", version.ref = "coilKT" }
 mlkit-entity-extraction = { group = "com.google.mlkit", name = "entity-extraction", version.ref = "mlkitEntityExtraction" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
+timber-logging = { group = "com.jakewharton.timber", name = "timber", version.ref = "timberLogs" }
 
 # Supabase
 supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
