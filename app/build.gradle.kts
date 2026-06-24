@@ -24,21 +24,17 @@ android {
         applicationId = "com.quickthought.orio"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "0.2-parser"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ndk {
-            debugSymbolLevel = "FULL"
-        }
+        testInstrumentationRunner = "com.quickthought.orio.core.di.HiltTestRunner"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        buildConfigField("String", "SUPABASE_URL", "\"https://your-project.supabase.co\"")
-        buildConfigField("String", "SUPABASE_KEY", "\"your-anon-key\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${keystoreProperties["SUPABASE_URL"] ?: "https://jcuqsngwzsnmozkdzbdj.supabase.co"}\"")
+        buildConfigField("String", "SUPABASE_KEY", "\"${keystoreProperties["SUPABASE_KEY"] ?: ""}\"")
     }
 
     signingConfigs {
@@ -68,6 +64,9 @@ android {
                 "proguard-rules.pro",
             )
             signingConfig = signingConfigs.getByName("release")
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
     compileOptions {
@@ -121,6 +120,8 @@ dependencies {
     implementation(libs.squareup.okhttp3)
 
     implementation(libs.coil.kt)
+    implementation(libs.mlkit.entity.extraction)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Supabase
     implementation(platform(libs.supabase.bom))
@@ -137,6 +138,7 @@ dependencies {
     androidTestImplementation(libs.test.squareup.okhttp3.mockServer)
 
     androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.test.mockk.android)
     kspAndroidTest(libs.hilt.android.compiler)
 
     testImplementation(libs.androidx.room.testing)
@@ -145,11 +147,9 @@ dependencies {
     testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.test.mockk.default)
     testImplementation(libs.test.mockk.agent)
-    testImplementation(libs.test.mockk.android)
     testImplementation(libs.test.cash.turbine)
     testImplementation(libs.test.google.truth)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    debugImplementation(libs.androidx.compose.ui.test.junit4)
 }

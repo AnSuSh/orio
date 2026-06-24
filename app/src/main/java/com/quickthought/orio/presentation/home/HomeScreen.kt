@@ -1,5 +1,7 @@
 package com.quickthought.orio.presentation.home
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -15,8 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -41,10 +41,8 @@ import com.quickthought.orio.presentation.home.components.BudgetProgressSection
 import com.quickthought.orio.presentation.home.components.SmsTrackingNudge
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
-import com.quickthought.orio.ui.theme.OrioTheme
-import android.Manifest
-import android.content.pm.PackageManager
 import com.quickthought.orio.presentation.util.OrioTopAppBar
+import com.quickthought.orio.ui.theme.OrioTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

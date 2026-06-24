@@ -6,7 +6,7 @@ import android.content.Intent
 import android.provider.Telephony
 import android.util.Log
 import com.quickthought.orio.domain.repository.TransactionsRepository
-import com.quickthought.orio.domain.util.SmsParser
+import com.quickthought.orio.domain.util.SmsEntityExtractor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,21 +20,30 @@ class SmsReceiver : BroadcastReceiver() {
     @Inject
     lateinit var repository: TransactionsRepository
 
+    @Inject
+    lateinit var smsEntityExtractor: SmsEntityExtractor
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
-            for (message in messages) {
-                val body = message.messageBody
-                Log.d("SmsReceiver", "Received SMS: $body")
-                
-                val transaction = SmsParser.parse(body)
-                if (transaction != null) {
-                    Log.d("SmsReceiver", "Parsed transaction: $transaction")
-                    scope.launch {
-                        repository.insertTransaction(transaction)
+            val pendingResult = goAsync()
+
+            scope.launch {
+                try {
+                    for (message in messages) {
+                        val body = message.messageBody
+                        Log.d("SmsReceiver", "Received SMS: $body")
+
+                        val transaction = smsEntityExtractor.extract(body)
+                        if (transaction != null) {
+                            Log.d("SmsReceiver", "Parsed transaction: $transaction")
+                            repository.insertTransaction(transaction)
+                        }
                     }
+                } finally {
+                    pendingResult.finish()
                 }
             }
         }

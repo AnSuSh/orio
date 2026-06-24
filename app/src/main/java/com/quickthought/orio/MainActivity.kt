@@ -27,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.quickthought.orio.domain.model.AppTheme
+import com.quickthought.orio.domain.util.SmsEntityExtractor
 import com.quickthought.orio.presentation.Screen
 import com.quickthought.orio.presentation.analytics.AnalyticsScreen
 import com.quickthought.orio.presentation.home.HomeScreen
@@ -35,12 +36,25 @@ import com.quickthought.orio.presentation.profile.ProfileViewModel
 import com.quickthought.orio.presentation.transactions.TransactionsScreen
 import com.quickthought.orio.ui.theme.OrioTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @Inject
+    lateinit var smsEntityExtractor: SmsEntityExtractor
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Pre-download ML Kit model
+        CoroutineScope(Dispatchers.IO).launch {
+            smsEntityExtractor.downloadModel()
+        }
+
         enableEdgeToEdge()
         setContent {
             val profileViewModel = hiltViewModel<ProfileViewModel>()
