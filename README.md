@@ -36,18 +36,32 @@ Orio is built using the latest industry standards to ensure scalability and main
 Orio follows **Unidirectional Data Flow (UDF)**. The UI reacts to state changes emitted by the ViewModel, which combines multiple data streams from the Repository layer.
 
 ### The Reactive Pipeline
-One of the core highlights of this project is the **Filtered Transaction Pipeline**. Instead of manual list management, Orio uses the `combine` operator to merge the raw database flow with the user's filter state:
+One of the core highlights of this project is the **Filtered Transaction Pipeline**. Instead of manual list management, Orio uses a Clean Architecture approach where the UI observes a flow provided by a **Use Case**. This use case combines raw database streams with user filters reactively:
 
 ```kotlin
-// Example of the reactive logic used in the project
-val filteredTransactions = combine(
-    repository.getAllTransactions(),
-    filterState.debounce { if (it.searchQuery.isNotEmpty()) 300L else 0L }
-) { transactions, filters ->
-    transactions
-        .filter { it.matches(filters) }
-        .applySort(filters.sortBy)
-}.stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyList())
+// GetTransactionsUseCase.kt
+class GetTransactionsUseCase @Inject constructor(
+    private val repository: TransactionsRepository
+) {
+    operator fun invoke(filters: TransactionFilterState): Flow<List<TransactionDomain>> {
+        return repository.getAllTransactions().map { transactions ->
+            transactions
+                .filter { it.matches(filters) }
+                .applySort(filters.sortBy)
+        }
+    }
+}
+```
+
+In the ViewModel, we use `flatMapLatest` to ensure we always observe the most recent filter configuration:
+
+```kotlin
+val filteredTransactions = filterState
+    .debounce { if (it.searchQuery.isNotEmpty()) 300L else 0L }
+    .flatMapLatest { filters ->
+        useCases.getTransactions(filters)
+    }
+    .stateIn(scope, SharingStarted.WhileSubscribed(5000), emptyList())
 ```
 
 ---

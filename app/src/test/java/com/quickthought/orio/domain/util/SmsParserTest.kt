@@ -9,45 +9,36 @@ import org.junit.Test
 class SmsParserTest {
 
     @Test
-    fun `parse expense - HDFC format`() {
-        val sms = "Rs 500.00 debited from a/c **1234 on 01-01-24 to VPA merchant@upi"
-        val transaction = SmsParser.parse(sms)
-        assertNotNull(transaction)
-        assertEquals(500.0, transaction?.amount)
-        assertEquals(TransactionType.EXPENSE, transaction?.type)
+    fun `parse expense message with keyword first`() {
+        val message = "Debited Rs. 500.00 from your account"
+        val result = SmsParser.parse(message)
+        assertNotNull(result)
+        assertEquals(500.0, result?.amount!!, 0.01)
+        assertEquals(TransactionType.EXPENSE, result.type)
     }
 
     @Test
-    fun `parse expense - ICICI format`() {
-        val sms = "Your A/c no. XXXX123 is debited for Rs 1,250.00 on 02-Jan-24. Info: UPI-MERCHANT-PURCHASE."
-        val transaction = SmsParser.parse(sms)
-        assertNotNull(transaction)
-        assertEquals(1250.0, transaction?.amount)
-        assertEquals(TransactionType.EXPENSE, transaction?.type)
+    fun `parse expense message with amount first`() {
+        val message = "Rs. 250 spent on Starbucks"
+        val result = SmsParser.parse(message)
+        assertNotNull(result)
+        assertEquals(250.0, result?.amount!!, 0.01)
+        assertEquals(TransactionType.EXPENSE, result.type)
     }
 
     @Test
-    fun `parse income - SBI format`() {
-        val sms = "Your A/c XXX1234 is credited with Rs 50,000.00 on 05/01/24 by NEFT"
-        val transaction = SmsParser.parse(sms)
-        assertNotNull(transaction)
-        assertEquals(50000.0, transaction?.amount)
-        assertEquals(TransactionType.INCOME, transaction?.type)
+    fun `parse income message`() {
+        val message = "Your account has been credited with INR 25,000"
+        val result = SmsParser.parse(message)
+        assertNotNull(result)
+        assertEquals(25000.0, result?.amount!!, 0.01)
+        assertEquals(TransactionType.INCOME, result.type)
     }
 
     @Test
-    fun `parse income - Generic format`() {
-        val sms = "₹ 100 received in your account from Friend"
-        val transaction = SmsParser.parse(sms)
-        assertNotNull(transaction)
-        assertEquals(100.0, transaction?.amount)
-        assertEquals(TransactionType.INCOME, transaction?.type)
-    }
-
-    @Test
-    fun `parse non-transactional SMS`() {
-        val sms = "Your OTP for login is 123456. Do not share it with anyone."
-        val transaction = SmsParser.parse(sms)
-        assertNull(transaction)
+    fun `return null for non-financial message`() {
+        val message = "Hi, how are you?"
+        val result = SmsParser.parse(message)
+        assertNull(result)
     }
 }

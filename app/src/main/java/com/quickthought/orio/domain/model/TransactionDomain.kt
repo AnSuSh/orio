@@ -6,10 +6,17 @@ import java.util.Locale
 import kotlin.text.contains
 
 /**
- * Model to be consumed in UI and Domain layer.
- * */
+ * Represent a financial transaction in the domain layer.
+ * 
+ * @property transactionId Local unique identifier.
+ * @property amount Value of the transaction.
+ * @property type Whether it's [TransactionType.INCOME] or [TransactionType.EXPENSE].
+ * @property category The category of spending/earning (e.g., 'food', 'salary').
+ * @property date Epoch timestamp of the transaction.
+ * @property note User-provided or auto-extracted description.
+ */
 data class TransactionDomain(
-    val transactionId: Int = 0, // Needed to del and update later
+    val transactionId: Int = 0,
     val amount: Double,
     val type: TransactionType,
     val category: String,
@@ -19,15 +26,24 @@ data class TransactionDomain(
     val remoteId: String? = null,
     val lastModified: Long = System.currentTimeMillis()
 ) {
+    /** Returns true if the transaction is an income. */
     val isIncome: Boolean = type == TransactionType.INCOME
 
+    /** Returns a human-readable date string. */
     val dateTimeString = date.toDateString()
 
+    /** Returns the amount formatted with the Rupee symbol. */
     val localizedPriceString = String.format(Locale.getDefault(), "₹ %.2f", amount)
 }
 
+/**
+ * Categorization of financial movement.
+ */
 enum class TransactionType {
-    INCOME, EXPENSE
+    /** Money coming in. */
+    INCOME, 
+    /** Money going out. */
+    EXPENSE
 }
 
 fun TransactionDomain.toTransactionData(): TransactionData {

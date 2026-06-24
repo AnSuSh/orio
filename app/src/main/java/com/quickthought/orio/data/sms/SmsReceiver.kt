@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.provider.Telephony
-import android.util.Log
+import com.quickthought.orio.core.OrioLogger
 import com.quickthought.orio.domain.repository.TransactionsRepository
 import com.quickthought.orio.domain.util.SmsEntityExtractor
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,14 +34,16 @@ class SmsReceiver : BroadcastReceiver() {
                 try {
                     for (message in messages) {
                         val body = message.messageBody
-                        Log.d("SmsReceiver", "Received SMS: $body")
+                        OrioLogger.debugLog("Received SMS", body)
 
                         val transaction = smsEntityExtractor.extract(body)
                         if (transaction != null) {
-                            Log.d("SmsReceiver", "Parsed transaction: $transaction")
+                            OrioLogger.infoLog("Parsed transaction from SMS", transaction)
                             repository.insertTransaction(transaction)
                         }
                     }
+                } catch (e: Exception) {
+                    OrioLogger.errorLog("Error processing SMS in Receiver", e.message)
                 } finally {
                     pendingResult.finish()
                 }

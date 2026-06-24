@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.lifecycleScope
 import com.quickthought.orio.core.OrioLogger
 import com.quickthought.orio.domain.model.AppTheme
 import com.quickthought.orio.domain.util.SmsEntityExtractor
@@ -37,7 +38,6 @@ import com.quickthought.orio.presentation.profile.ProfileViewModel
 import com.quickthought.orio.presentation.transactions.TransactionsScreen
 import com.quickthought.orio.ui.theme.OrioTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,8 +51,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Pre-download ML Kit model
-        CoroutineScope(Dispatchers.IO).launch {
+        // Pre-download ML Kit model on a background thread
+        lifecycleScope.launch(Dispatchers.IO) {
             smsEntityExtractor.downloadModel()
         }
 

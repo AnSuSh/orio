@@ -12,12 +12,29 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Core utility for extracting financial transaction data from SMS messages.
+ * 
+ * This class uses a multi-layered approach:
+ * 1. **ML Kit Entity Extraction**: Primary method to identify amounts and dates.
+ * 2. **Keyword Mapping**: Custom logic to categorize transactions (e.g., Food, Transport) based on merchant names.
+ * 3. **Regex Fallback**: Uses [SmsParser] if ML Kit fails to identify essential fields.
+ * 
+ * Extracted logs are automatically sent to Supabase via [SmsLogger] for analytical improvements.
+ */
 @Singleton
 class SmsEntityExtractor @Inject constructor(
     private val smsLogger: SmsLogger,
     private val entityExtractor: EntityExtractor
 ) {
 
+    /**
+     * Extracts a [TransactionDomain] from the given SMS [text].
+     * 
+     * @param text The raw SMS message body.
+     * @return A valid transaction object if extraction succeeds, or null if the message 
+     *         is not recognized as a financial transaction.
+     */
     suspend fun extract(text: String): TransactionDomain? {
         var method = "ML_KIT"
         return try {
