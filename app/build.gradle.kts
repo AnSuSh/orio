@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
     alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
 }
@@ -24,8 +26,8 @@ android {
         applicationId = "com.quickthought.orio"
         minSdk = 26
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2-parser"
+        versionCode = 4
+        versionName = "0.2.1-parser"
 
         testInstrumentationRunner = "com.quickthought.orio.core.di.HiltTestRunner"
 
@@ -33,8 +35,16 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        buildConfigField("String", "SUPABASE_URL", "\"${keystoreProperties["SUPABASE_URL"] ?: "https://jcuqsngwzsnmozkdzbdj.supabase.co"}\"")
-        buildConfigField("String", "SUPABASE_KEY", "\"${keystoreProperties["SUPABASE_KEY"] ?: ""}\"")
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            "\"${keystoreProperties["SUPABASE_URL"] ?: "https://jcuqsngwzsnmozkdzbdj.supabase.co"}\""
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_KEY",
+            "\"${keystoreProperties["SUPABASE_KEY"] ?: ""}\""
+        )
     }
 
     signingConfigs {
@@ -52,8 +62,6 @@ android {
             isMinifyEnabled = false
             isDebuggable = true
             isDefault = true
-            versionNameSuffix = "-debug"
-            applicationIdSuffix = ".debug"
         }
         release {
             isMinifyEnabled = true
@@ -69,12 +77,23 @@ android {
             }
         }
     }
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+        create("prod") {
+            dimension = "environment"
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget =  JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
     buildFeatures {
         compose = true
@@ -130,6 +149,12 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.realtime)
     implementation(libs.ktor.client)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.ai)
 
     // Testing
     androidTestImplementation(libs.androidx.junit)

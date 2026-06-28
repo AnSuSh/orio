@@ -11,6 +11,8 @@ data class TransactionData(
     val categoryId: String = "other",
     val date: Long = System.currentTimeMillis(),
     val note: String = "",
+    val trackingMethod: String = "MANUAL",
+    val rawMessage: String? = null,
     val isSynced: Boolean = false,
     val remoteId: String? = null,
     val lastModified: Long = System.currentTimeMillis()

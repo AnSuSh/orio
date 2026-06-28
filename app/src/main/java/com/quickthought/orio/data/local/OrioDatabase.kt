@@ -8,7 +8,7 @@ import com.quickthought.orio.data.local.entity.TransactionData
 
 @Database(
     entities = [TransactionData::class],
-    version = 3,
+    version = 5,
     exportSchema = true,
 )
 abstract class OrioDatabase : RoomDatabase() {
@@ -17,6 +17,18 @@ abstract class OrioDatabase : RoomDatabase() {
 
     companion object {
         const val DATABASE_NAME = "orio_db"
+    }
+}
+
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE transactions ADD COLUMN rawMessage TEXT")
+    }
+}
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE transactions ADD COLUMN trackingMethod TEXT NOT NULL DEFAULT 'MANUAL'")
     }
 }
 

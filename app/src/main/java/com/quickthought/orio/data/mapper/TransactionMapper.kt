@@ -1,6 +1,7 @@
 package com.quickthought.orio.data.mapper
 
 import com.quickthought.orio.data.local.entity.TransactionData
+import com.quickthought.orio.domain.model.TrackingMethod
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
 
@@ -12,6 +13,12 @@ fun TransactionData.toTransactionDomain(): TransactionDomain {
         category = categoryId.ifEmpty { "other" },
         date = date,
         note = note,
+        trackingMethod = try {
+            TrackingMethod.valueOf(trackingMethod)
+        } catch (_: Exception) {
+            TrackingMethod.MANUAL
+        },
+        rawMessage = rawMessage,
         isSynced = isSynced,
         remoteId = remoteId,
         lastModified = lastModified

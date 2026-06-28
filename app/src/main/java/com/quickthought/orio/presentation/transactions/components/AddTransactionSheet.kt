@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.quickthought.orio.domain.model.TrackingMethod
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
 import com.quickthought.orio.domain.model.transactionCategories
@@ -209,7 +210,8 @@ fun AddTransactionSheet(
                             amount = valAmount,
                             note = note,
                             category = selectedCategory.id,
-                            date = selectedDate
+                            date = selectedDate,
+                            trackingMethod = TrackingMethod.MANUAL
                         )
                     )
                     focusManager.clearFocus()

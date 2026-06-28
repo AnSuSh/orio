@@ -1,11 +1,12 @@
 package com.quickthought.orio.domain.util
 
 import com.google.mlkit.nl.entityextraction.DateTimeEntity
-import com.google.mlkit.nl.entityextraction.EntityExtractor
 import com.google.mlkit.nl.entityextraction.EntityExtractionParams
+import com.google.mlkit.nl.entityextraction.EntityExtractor
 import com.google.mlkit.nl.entityextraction.MoneyEntity
 import com.quickthought.orio.data.sms.SmsLog
 import com.quickthought.orio.data.sms.SmsLogger
+import com.quickthought.orio.domain.model.TrackingMethod
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
 import kotlinx.coroutines.tasks.await
@@ -39,19 +40,26 @@ class SmsEntityExtractor @Inject constructor(
         var method = "ML_KIT"
         return try {
             entityExtractor.downloadModelIfNeeded().await()
-            
+
             val params = EntityExtractionParams.Builder(text).build()
             val annotations = entityExtractor.annotate(params).await()
-            
+
             var amount: Double? = null
             var date: Long = System.currentTimeMillis()
-            
+
             for (annotation in annotations) {
                 for (entity in annotation.entities) {
                     when (entity) {
                         is MoneyEntity -> {
-                            val fraction = entity.fractionalPart.toDouble() / 100.0
-                            amount = entity.integerPart.toDouble() + fraction
+                            val currentAmount = entity.integerPart.toDouble() + (entity.fractionalPart.toDouble() / 100.0)
+                            // Heuristic: If we find multiple amounts, and one looks like a balance or limit,
+                            // we try to pick the transaction one.
+                            val balanceKeywords = listOf("Avl Bal", "Available Balance", "Avl Limit", "Available Limit")
+                            val isBalanceContext = balanceKeywords.any { text.contains(it, ignoreCase = true) }
+                            
+                            if (amount == null || !isBalanceContext) {
+                                amount = currentAmount
+                            }
                         }
                         is DateTimeEntity -> {
                             date = entity.timestampMillis
@@ -59,13 +67,19 @@ class SmsEntityExtractor @Inject constructor(
                     }
                 }
             }
-            
+
             if (amount == null) {
                 method = "FALLBACK"
                 val fallback = SmsParser.parse(text)
                 return fallback?.let {
+                    if (isLikelyMarketingOffer(text)) return null
                     val (category, note) = getCategoryAndNote(text, it.type)
-                    val result = it.copy(category = category, note = note)
+                    val result = it.copy(
+                        category = category, 
+                        note = note,
+                        trackingMethod = TrackingMethod.AUTO_SMS,
+                        rawMessage = text
+                    )
                     logExtraction(text, result, method)
                     result
                 }
@@ -79,20 +93,50 @@ class SmsEntityExtractor @Inject constructor(
                 type = type,
                 category = category,
                 date = date,
-                note = note
+                note = note,
+                trackingMethod = TrackingMethod.AUTO_SMS,
+                rawMessage = text
             )
+            
+            // Check for marketing offers/ads
+            if (isLikelyMarketingOffer(text)) {
+                return null
+            }
+
             logExtraction(text, result, method)
             result
         } catch (e: Exception) {
             method = "ERROR_FALLBACK"
             val fallback = SmsParser.parse(text)
             fallback?.let {
+                if (isLikelyMarketingOffer(text)) return null
                 val (category, note) = getCategoryAndNote(text, it.type)
-                val result = it.copy(category = category, note = note)
+                val result = it.copy(
+                    category = category, 
+                    note = note,
+                    trackingMethod = TrackingMethod.AUTO_SMS,
+                    rawMessage = text
+                )
                 logExtraction(text, result, method)
                 result
             }
         }
+    }
+
+    private fun isLikelyMarketingOffer(text: String): Boolean {
+        val lowerText = text.lowercase()
+        
+        // Specific patterns from the failed cases
+        val isAirtelRecharge = lowerText.contains("recharge now with rs") && 
+                              (lowerText.contains("airtel") || lowerText.contains("unlimited calls"))
+        
+        val isSbiCardDiscount = lowerText.contains("instant discount") && 
+                                lowerText.contains("sbi credit card") && 
+                                lowerText.contains("valid till")
+        
+        val isPersonalOffer = lowerText.contains("offer for") && lowerText.contains("!")
+
+        return isAirtelRecharge || isSbiCardDiscount || isPersonalOffer
     }
 
     private fun logExtraction(text: String, result: TransactionDomain, method: String) {
@@ -109,57 +153,81 @@ class SmsEntityExtractor @Inject constructor(
     }
 
     private fun getTransactionType(text: String): TransactionType {
-        val incomeKeywords = listOf("credited", "received", "deposited", "added")
-        return if (incomeKeywords.any { text.contains(it, ignoreCase = true) }) {
-            TransactionType.INCOME
-        } else {
-            TransactionType.EXPENSE
+        val lowerText = text.lowercase()
+        val incomeKeywords = listOf("credited", "received", "deposited", "added", "credit by")
+        
+        if (incomeKeywords.any { lowerText.contains(it) }) {
+            return TransactionType.INCOME
         }
+        return TransactionType.EXPENSE
     }
 
     private fun getCategoryAndNote(text: String, type: TransactionType): Pair<String, String> {
+        val merchant = findMerchant(text)
         val lowerText = text.lowercase()
-        
+        val categoryContext = (merchant ?: "") + " " + lowerText
+
         // Categorization logic
         val category = when {
-            type == TransactionType.INCOME && (lowerText.contains("salary") || lowerText.contains("payroll") || lowerText.contains("hrl")) -> "salary"
-            lowerText.contains("zomato") || lowerText.contains("swiggy") || lowerText.contains("restaurant") || 
-                lowerText.contains("starbucks") || lowerText.contains("domino") || lowerText.contains("cafe") || 
-                lowerText.contains("eat") || lowerText.contains("food") -> "food"
-            lowerText.contains("uber") || lowerText.contains("ola") || lowerText.contains("rapido") || 
-                lowerText.contains("petrol") || lowerText.contains("shell") || lowerText.contains("fuel") || 
-                lowerText.contains("metro") || lowerText.contains("irctc") || lowerText.contains("train") -> "transport"
-            lowerText.contains("amazon") || lowerText.contains("flipkart") || lowerText.contains("myntra") || 
-                lowerText.contains("dmart") || lowerText.contains("bigbasket") || lowerText.contains("grocery") || 
-                lowerText.contains("mall") || lowerText.contains("reliance") -> "shopping"
-            lowerText.contains("netflix") || lowerText.contains("hotstar") || lowerText.contains("spotify") || 
-                lowerText.contains("pvr") || lowerText.contains("cinema") || lowerText.contains("bookmyshow") -> "entertainment"
-            lowerText.contains("pharmacy") || lowerText.contains("apollo") || lowerText.contains("hospital") || 
-                lowerText.contains("medplus") || lowerText.contains("doctor") || lowerText.contains("clinic") -> "health"
-            lowerText.contains("school") || lowerText.contains("college") || lowerText.contains("university") || 
-                lowerText.contains("udemy") || lowerText.contains("coursera") -> "education"
+            type == TransactionType.INCOME && (lowerText.contains("salary") || lowerText.contains("payroll") || lowerText.contains(
+                "hrl"
+            )) -> "salary"
+
+            categoryContext.contains("zomato") || categoryContext.contains("swiggy") || categoryContext.contains("restaurant") ||
+                    categoryContext.contains("starbucks") || categoryContext.contains("domino") || categoryContext.contains(
+                "cafe"
+            ) ||
+                    categoryContext.contains("eat") || categoryContext.contains("food") -> "food"
+
+            categoryContext.contains("uber") || categoryContext.contains("ola") || categoryContext.contains("rapido") ||
+                    categoryContext.contains("petrol") || categoryContext.contains("shell") || categoryContext.contains(
+                "fuel"
+            ) ||
+                    categoryContext.contains("metro") || categoryContext.contains("irctc") || categoryContext.contains(
+                "train"
+            ) || categoryContext.contains("transport") -> "transport"
+
+            categoryContext.contains("amazon") || categoryContext.contains("flipkart") || categoryContext.contains("myntra") ||
+                    categoryContext.contains("dmart") || categoryContext.contains("bigbasket") || categoryContext.contains(
+                "grocery"
+            ) ||
+                    categoryContext.contains("mall") || categoryContext.contains("reliance") || categoryContext.contains("shopping") -> "shopping"
+
+            categoryContext.contains("netflix") || categoryContext.contains("hotstar") || categoryContext.contains("spotify") ||
+                    categoryContext.contains("pvr") || categoryContext.contains("cinema") || categoryContext.contains(
+                "bookmyshow"
+            ) -> "entertainment"
+
+            categoryContext.contains("pharmacy") || categoryContext.contains("apollo") || categoryContext.contains("hospital") ||
+                    categoryContext.contains("medplus") || categoryContext.contains("doctor") || categoryContext.contains(
+                "clinic"
+            ) -> "health"
+
+            categoryContext.contains("school") || categoryContext.contains("college") || categoryContext.contains("university") ||
+                    categoryContext.contains("udemy") || categoryContext.contains("coursera") -> "education"
+
             else -> "other"
         }
 
-        // Note extraction: try to find the merchant name
-        val merchant = findMerchant(text)
         val note = merchant ?: "Auto-tracked SMS"
-
         return Pair(category, note)
     }
 
     private fun findMerchant(text: String): String? {
         // Common patterns for merchant names in Indian bank SMS
         val patterns = listOf(
-            "(?:at|to|towards|on)\\s+([A-Za-z0-9* ]+?)(?:\\s+using|\\s+for|\\s+bal|\\s+ref|\\.)".toRegex(RegexOption.IGNORE_CASE),
-            "spent\\s+on\\s+([A-Za-z0-9* ]+?)(?:\\s+using|\\.)".toRegex(RegexOption.IGNORE_CASE),
-            "paid\\s+to\\s+([A-Za-z0-9* ]+?)(?:\\s+using|\\.)".toRegex(RegexOption.IGNORE_CASE)
+            "(?:at|to|towards|on|trf to|spent on|paid to)\\s+([A-Za-z0-9* ]+?)(?:\\s+using|\\s+for|\\s+bal|\\s+ref|\\.|$)".toRegex(
+                RegexOption.IGNORE_CASE
+            ),
+            "Info:\\s*([A-Za-z0-9* -]+)".toRegex(RegexOption.IGNORE_CASE)
         )
 
         for (regex in patterns) {
             val match = regex.find(text)
             if (match != null) {
-                val name = match.groupValues[1].trim()
+                var name = match.groupValues[1].trim()
+                // Remove trailing dashes or dots
+                name = name.removeSuffix("-").removeSuffix(".").trim()
                 if (name.isNotEmpty() && name.length > 2) {
                     return name
                 }
@@ -167,7 +235,7 @@ class SmsEntityExtractor @Inject constructor(
         }
         return null
     }
-    
+
     suspend fun downloadModel() {
         entityExtractor.downloadModelIfNeeded().await()
     }

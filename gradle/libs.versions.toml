@@ -6,6 +6,7 @@ kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
 ktor = "3.0.0"
 serialization = "2.1.0"
+googleServices = "4.5.0"
 
 composeBom = "2026.01.00"
 androidXActivity = "1.12.2"
@@ -17,6 +18,8 @@ androidXLifecycle = "2.10.0"
 androidXNavigation = "2.9.6"
 androidXRoom = "2.7.0"
 supabase = "3.0.1"
+firebaseBOM = "34.15.0"
+firebaseCrashlytics = "3.0.7"
 mlkitEntityExtraction = "16.0.0-beta6"
 
 # Hilt library
@@ -84,10 +87,16 @@ squareup-retrofit = { group = "com.squareup.retrofit2", name = "retrofit", versi
 squareup-retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "squareupRetrofit" }
 squareup-okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "squareupOkHttp3" }
 
-coil-kt = { group= "io.coil-kt", name = "coil-compose", version.ref = "coilKT" }
+coil-kt = { group = "io.coil-kt", name = "coil-compose", version.ref = "coilKT" }
 mlkit-entity-extraction = { group = "com.google.mlkit", name = "entity-extraction", version.ref = "mlkitEntityExtraction" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 timber-logging = { group = "com.jakewharton.timber", name = "timber", version.ref = "timberLogs" }
+
+# Firebase
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBOM" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 
 # Supabase
 supabase-postgrest = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt" }
@@ -104,8 +113,8 @@ kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coro
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidXJUnit" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "androidXRoom" }
-hilt-android-testing = { group="com.google.dagger", name = "hilt-android-testing", version.ref = "hiltAndroid" }
-hilt-android-compiler = { group="com.google.dagger", name = "hilt-android-compiler", version.ref = "hiltAndroid" }
+hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hiltAndroid" }
+hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hiltAndroid" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 test-mockk-default = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
@@ -122,3 +131,5 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics" }

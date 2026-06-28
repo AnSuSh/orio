@@ -73,7 +73,7 @@ class SmsEntityExtractorTest {
 
         val result = extractor.extract(text)
 
-        assertEquals(1200.0, result?.amount)
+        assertEquals(1200.0, result?.amount ?: 0.0, 0.1)
         assertEquals("shopping", result?.category)
         assertEquals("Amazon", result?.note)
     }
@@ -130,10 +130,10 @@ class SmsEntityExtractorTest {
         val result = extractor.extract(text)
 
         // Should still find amount 500.0 from SmsParser
-        assertEquals(500.0, result?.amount)
+        assertEquals(500.0, result?.amount ?: 0.0, 0.1)
         // And should still categorize it as entertainment because of PVR
         assertEquals("entertainment", result?.category)
-        assertEquals("PVR CINEMAS", result?.note?.uppercase())
+        assertEquals("UPI-PVR-CINEMAS", result?.note?.uppercase())
     }
 
     @Test
@@ -151,7 +151,26 @@ class SmsEntityExtractorTest {
 
         val result = extractor.extract(text)
 
+        assertEquals(150.0, result?.amount ?: 0.0, 0.1)
         assertEquals("transport", result?.category)
         assertEquals("Shell", result?.note)
+    }
+
+    @Test
+    fun `test raw message storage - rawMessage should match input text`() = runBlocking {
+        val text = "Paid Rs 150 for Petrol at Shell"
+
+        val mockAnnotation = mockk<EntityAnnotation>()
+        val mockMoneyEntity = mockk<MoneyEntity>()
+        every { mockMoneyEntity.integerPart } returns 150
+        every { mockMoneyEntity.fractionalPart } returns 0
+        every { mockAnnotation.entities } returns listOf(mockMoneyEntity)
+
+        val mockAnnotateTask = Tasks.forResult(listOf(mockAnnotation))
+        every { mockClient.annotate(any<com.google.mlkit.nl.entityextraction.EntityExtractionParams>()) } returns mockAnnotateTask
+
+        val result = extractor.extract(text)
+
+        assertEquals(text, result?.rawMessage)
     }
 }

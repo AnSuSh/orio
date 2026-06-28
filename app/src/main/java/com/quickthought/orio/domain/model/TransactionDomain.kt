@@ -3,7 +3,6 @@ package com.quickthought.orio.domain.model
 import com.quickthought.orio.data.local.entity.TransactionData
 import com.quickthought.orio.domain.util.toDateString
 import java.util.Locale
-import kotlin.text.contains
 
 /**
  * Represent a financial transaction in the domain layer.
@@ -22,6 +21,8 @@ data class TransactionDomain(
     val category: String,
     val date: Long,
     val note: String = "",
+    val trackingMethod: TrackingMethod = TrackingMethod.MANUAL,
+    val rawMessage: String? = null,
     val isSynced: Boolean = false,
     val remoteId: String? = null,
     val lastModified: Long = System.currentTimeMillis()
@@ -41,7 +42,8 @@ data class TransactionDomain(
  */
 enum class TransactionType {
     /** Money coming in. */
-    INCOME, 
+    INCOME,
+
     /** Money going out. */
     EXPENSE
 }
@@ -54,6 +56,8 @@ fun TransactionDomain.toTransactionData(): TransactionData {
         category,
         date,
         note,
+        trackingMethod.name,
+        rawMessage,
         isSynced,
         remoteId,
         lastModified

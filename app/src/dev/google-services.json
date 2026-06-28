@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "576518687494",
+    "project_id": "orio-finance-dev",
+    "storage_bucket": "orio-finance-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576518687494:android:e0ac58703e60d0b0286c87",
+        "android_client_info": {
+          "package_name": "com.quickthought.orio.debug"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzXEjjGpjBityj04Zh-QsApNcTmwGZ49c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
