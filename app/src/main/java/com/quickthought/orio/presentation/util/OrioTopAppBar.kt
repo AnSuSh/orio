@@ -3,7 +3,7 @@ package com.quickthought.orio.presentation.util
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -11,6 +11,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.quickthought.orio.BuildConfig
 import com.quickthought.orio.ui.theme.OrioTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -19,24 +20,21 @@ fun OrioTopAppBar(title: String, modifier: Modifier = Modifier) {
     TopAppBar(
         modifier = modifier,
         title = {
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            Column(
+                verticalArrangement = Arrangement.Center
             ) {
-//                IconButton(onClick = {}) {
-//                    Icon(imageVector = Icons.Default.Person, modifier = Modifier
-//                        .size(32.dp)
-//                        .clip(CircleShape),
-//                        tint = OrioGold,
-//                        contentDescription = null
-//                    )
-//                }
-//                Spacer(modifier = Modifier.size(16.dp))
                 Text(
                     title,
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
+                if (BuildConfig.DEBUG) {
+                    Text(
+                        text = "v${BuildConfig.VERSION_NAME} (Dev build)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
         }
     )
