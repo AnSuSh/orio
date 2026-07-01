@@ -43,6 +43,7 @@ import com.quickthought.orio.presentation.home.components.SmsTrackingNudge
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.presentation.util.OrioTopAppBar
+import com.quickthought.orio.ui.components.AdaptiveWrapper
 import com.quickthought.orio.ui.theme.OrioTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,74 +95,75 @@ fun HomeScreenContent(
             OrioTopAppBar("Orio - Dashboard")
         },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            contentPadding = innerPadding,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Professional Overview Section
-            item {
-                BalanceOverview(
-                    balance = state.totalBalance,
-                    income = state.totalIncome,
-                    expense = state.totalExpense
-                )
-            }
-
-            // Budget Progress Section
-            item {
-                // We wrap this in a key. When budgetAnimKey changes, the animation restarts.
-                key(budgetAnimKey) {
-                    BudgetProgressSection(
-                        totalExpenses = state.totalExpense,
-                        daysLeftInMonth = state.daysLeftInMonth,
-                        monthlyBudget = state.monthlyBudget,
-                        modifier = Modifier.clickable {
-                            showBudgetDialog = true
-                        }
+        AdaptiveWrapper(modifier = Modifier.padding(innerPadding)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Professional Overview Section
+                item {
+                    BalanceOverview(
+                        balance = state.totalBalance,
+                        income = state.totalIncome,
+                        expense = state.totalExpense
                     )
                 }
-            }
 
-            if (!hasSmsPermission) {
+                // Budget Progress Section
                 item {
-                    SmsTrackingNudge(
-                        onEnableClick = {
-                            launcher.launch(
-                                arrayOf(
-                                    Manifest.permission.RECEIVE_SMS,
-                                    Manifest.permission.READ_SMS
-                                )
-                            )
-                        }
-                    )
-                }
-            }
-
-            // Section Header
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Recent Transactions",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            if (state.transactions.isEmpty()) {
-                item {
-                    Box(
-                        Modifier.fillParentMaxHeight(0.5f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        EmptyTransactionsState()
+                    // We wrap this in a key. When budgetAnimKey changes, the animation restarts.
+                    key(budgetAnimKey) {
+                        BudgetProgressSection(
+                            totalExpenses = state.totalExpense,
+                            daysLeftInMonth = state.daysLeftInMonth,
+                            monthlyBudget = state.monthlyBudget,
+                            modifier = Modifier.clickable {
+                                showBudgetDialog = true
+                            }
+                        )
                     }
                 }
-            } else {
-                items(state.transactions.take(5), key = { it.transactionId }) { transaction ->
-                    TransactionItem(transaction)
+
+                if (!hasSmsPermission) {
+                    item {
+                        SmsTrackingNudge(
+                            onEnableClick = {
+                                launcher.launch(
+                                    arrayOf(
+                                        Manifest.permission.RECEIVE_SMS,
+                                        Manifest.permission.READ_SMS
+                                    )
+                                )
+                            }
+                        )
+                    }
+                }
+
+                // Section Header
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Recent Transactions",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                if (state.transactions.isEmpty()) {
+                    item {
+                        Box(
+                            Modifier.fillParentMaxHeight(0.5f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            EmptyTransactionsState()
+                        }
+                    }
+                } else {
+                    items(state.transactions.take(5), key = { it.transactionId }) { transaction ->
+                        TransactionItem(transaction)
+                    }
                 }
             }
         }

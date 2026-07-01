@@ -8,13 +8,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -48,6 +47,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var smsEntityExtractor: SmsEntityExtractor
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
             val profileViewModel = hiltViewModel<ProfileViewModel>()
             val state by profileViewModel.state.collectAsStateWithLifecycle()
 
@@ -86,35 +87,32 @@ fun MainAppScreen(
 
         val items = listOf(Screen.Home, Screen.Transactions, Screen.Analytics, Screen.Profile)
 
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
-            bottomBar = {
-                NavigationBar {
-                    items.forEach { screen ->
-                        NavigationBarItem(
-                            icon = { Icon(screen.icon, contentDescription = screen.route) },
-                            label = { Text(screen.title) },
-                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                items.forEach { screen ->
+                    item(
+                        icon = { Icon(screen.icon, contentDescription = screen.route) },
+                        label = { Text(screen.title) },
+                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                        )
-                    }
+                        }
+                    )
                 }
-            }
-        ) { innerPadding ->
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) {
             NavHost(
                 navController = navController,
                 startDestination = Screen.Home.route,
                 modifier = Modifier
-                    .padding(bottom = innerPadding.calculateBottomPadding())
-                    .consumeWindowInsets(WindowInsets.navigationBars) // Only consume bottom bar insets
+                    .consumeWindowInsets(WindowInsets.navigationBars)
             ) {
                 composable(Screen.Home.route) { HomeScreen() }
                 composable(Screen.Transactions.route) { TransactionsScreen() }

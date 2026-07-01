@@ -53,6 +53,7 @@ import com.quickthought.orio.presentation.transactions.components.FilterSection
 import com.quickthought.orio.presentation.transactions.components.TransactionItem
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.presentation.util.OrioTopAppBar
+import com.quickthought.orio.ui.components.AdaptiveWrapper
 import com.quickthought.orio.ui.theme.OrioExpense
 import com.quickthought.orio.ui.theme.OrioTheme
 
@@ -108,14 +109,15 @@ fun TransactionsScreenContent(
             }
         }
     ) { paddingValues ->
-        TransactionList(
-            transactions = filteredTransactions,
-            filterState = filterState,
-            onFilterChange = onFilterChange,
-            onEdit = onEditTransactionSelected,
-            onDeleteRequest = { transactionToDelete = it },
-            contentPadding = paddingValues
-        )
+        AdaptiveWrapper(modifier = Modifier.padding(paddingValues)) {
+            TransactionList(
+                transactions = filteredTransactions,
+                filterState = filterState,
+                onFilterChange = onFilterChange,
+                onEdit = onEditTransactionSelected,
+                onDeleteRequest = { transactionToDelete = it }
+            )
+        }
     }
 
     if (showAddSheet) {

@@ -59,6 +59,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.R
 import com.quickthought.orio.domain.model.AppTheme
 import com.quickthought.orio.presentation.util.OrioTopAppBar
+import com.quickthought.orio.ui.components.AdaptiveWrapper
 import com.quickthought.orio.ui.theme.OrioTheme
 import kotlin.math.roundToInt
 
@@ -126,39 +127,40 @@ fun ProfileContent(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            ThemeSelector(
-                currentTheme = state.appTheme,
-                onThemeChange = onThemeChange
-            )
+        AdaptiveWrapper(modifier = Modifier.padding(innerPadding)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                ThemeSelector(
+                    currentTheme = state.appTheme,
+                    onThemeChange = onThemeChange
+                )
 
-            HorizontalDivider()
+                HorizontalDivider()
 
-            PremiumToggle(
-                isPremium = state.isPremium,
-                onPremiumChange = onPremiumChange
-            )
+                PremiumToggle(
+                    isPremium = state.isPremium,
+                    onPremiumChange = onPremiumChange
+                )
 
-            HorizontalDivider()
+                HorizontalDivider()
 
-            BudgetInput(
-                currentBudget = state.monthlyBudget,
-                onSaveBudget = onSaveBudget
-            )
+                BudgetInput(
+                    currentBudget = state.monthlyBudget,
+                    onSaveBudget = onSaveBudget
+                )
 
-            HorizontalDivider()
+                HorizontalDivider()
 
-            FeedbackSection(
-                onSendFeedback = onSendFeedback
-            )
+                FeedbackSection(
+                    onSendFeedback = onSendFeedback
+                )
+            }
         }
     }
 }

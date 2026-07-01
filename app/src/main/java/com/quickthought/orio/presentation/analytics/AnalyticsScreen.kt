@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.presentation.analytics.components.AnalyticsContent
 import com.quickthought.orio.presentation.analytics.components.PremiumLockScreen
 import com.quickthought.orio.presentation.util.OrioTopAppBar
+import com.quickthought.orio.ui.components.AdaptiveWrapper
 import com.quickthought.orio.ui.theme.OrioTheme
 
 @Composable
@@ -39,13 +40,14 @@ fun AnalyticsScreenContent(
             OrioTopAppBar(title = "Orio - Analytics")
         }
     ) { padding ->
-        if (!state.isPremium) {
-            PremiumLockScreen(modifier = Modifier.padding(padding))
-        } else {
-            AnalyticsContent(
-                state = state,
-                modifier = Modifier.padding(padding)
-            )
+        AdaptiveWrapper(modifier = Modifier.padding(padding)) {
+            if (!state.isPremium) {
+                PremiumLockScreen()
+            } else {
+                AnalyticsContent(
+                    state = state
+                )
+            }
         }
     }
 }
