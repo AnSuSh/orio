@@ -15,7 +15,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import com.quickthought.orio.ui.theme.OrioTheme
 
 @Composable
 fun SmsTrackingNudge(
@@ -53,5 +57,22 @@ fun SmsTrackingNudge(
                 Text("Enable")
             }
         }
+    }
+}
+
+@PreviewLightDark
+@PreviewScreenSizes
+@Composable
+private fun SmsTrackingNudgePreview() {
+    OrioTheme {
+        SmsTrackingNudge(onEnableClick = {})
+    }
+}
+
+@Preview(name = "Large Font", fontScale = 1.5f)
+@Composable
+private fun SmsTrackingNudgeLargeFontPreview() {
+    OrioTheme {
+        SmsTrackingNudge(onEnableClick = {})
     }
 }

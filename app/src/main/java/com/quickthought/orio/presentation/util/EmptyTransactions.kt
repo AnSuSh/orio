@@ -12,7 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import com.quickthought.orio.ui.theme.OrioTheme
 
 @Composable
 fun EmptyTransactionsState() {
@@ -28,5 +32,22 @@ fun EmptyTransactionsState() {
             tint = Color.LightGray
         )
         Text("No transactions yet", color = Color.Gray)
+    }
+}
+
+@PreviewLightDark
+@PreviewScreenSizes
+@Composable
+private fun EmptyTransactionsStatePreview() {
+    OrioTheme {
+        EmptyTransactionsState()
+    }
+}
+
+@Preview(name = "Large Font", fontScale = 1.5f)
+@Composable
+private fun EmptyTransactionsStateLargeFontPreview() {
+    OrioTheme {
+        EmptyTransactionsState()
     }
 }

@@ -48,12 +48,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import com.quickthought.orio.domain.model.Category
 import com.quickthought.orio.domain.model.TrackingMethod
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
 import com.quickthought.orio.domain.model.transactionCategories
 import com.quickthought.orio.domain.util.toDateString
+import com.quickthought.orio.ui.theme.OrioTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,154 +87,33 @@ fun AddTransactionSheet(
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentWindowInsets = { WindowInsets.ime }
     ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
-                .fillMaxWidth()
-                .navigationBarsPadding(),
-        ) {
-            Text(
-                text = "New Transaction",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            // Amount Field
-            OutlinedTextField(
-                value = amount,
-                onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) amount = it },
-                label = { Text("Amount") },
-                textStyle = MaterialTheme.typography.titleLarge,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Next
-                ),
-                prefix = { Text("₹", style = MaterialTheme.typography.titleLarge) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                shape = MaterialTheme.shapes.medium,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            // Type Selection
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                FilterChip(
-                    modifier = Modifier
-                        .weight(1f),
-                    selected = !isIncome,
-                    onClick = { isIncome = false },
-                    label = {
-                        Text(
-                            "Expense",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
-                    },
-                )
-                FilterChip(
-                    modifier = Modifier.weight(1f),
-                    selected = isIncome,
-                    onClick = { isIncome = true },
-                    label = {
-                        Text(
-                            "Income",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
-                    },
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Select Category", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 8.dp)
-            ) {
-                items(transactionCategories) { category ->
-                    FilterChip(
-                        selected = selectedCategory.id == category.id,
-                        onClick = { selectedCategory = category },
-                        label = { Text(category.name) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = category.icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = if (selectedCategory.id == category.id)
-                                    category.color else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+        AddTransactionContent(
+            amount = amount,
+            onAmountChange = { amount = it },
+            note = note,
+            onNoteChange = { note = it },
+            isIncome = isIncome,
+            onTypeChange = { isIncome = it },
+            selectedCategory = selectedCategory,
+            onCategoryChange = { selectedCategory = it },
+            selectedDate = selectedDate,
+            onDateClick = { showDatePicker = true },
+            onSave = {
+                val valAmount = amount.toDoubleOrNull() ?: 0.0
+                onSave(
+                    TransactionDomain(
+                        type = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
+                        amount = valAmount,
+                        note = note,
+                        category = selectedCategory.id,
+                        date = selectedDate,
+                        trackingMethod = TrackingMethod.MANUAL
                     )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedCard(
-                onClick = { showDatePicker = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null)
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text("Transaction Date", style = MaterialTheme.typography.labelMedium)
-                        Text(
-                            selectedDate.toDateString(),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = note,
-                onValueChange = { note = it },
-                label = { Text("Note / Description") },
-                placeholder = { Text("e.g. Groceries") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    val valAmount = amount.toDoubleOrNull() ?: 0.0
-                    onSave(
-                        TransactionDomain(
-                            type = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
-                            amount = valAmount,
-                            note = note,
-                            category = selectedCategory.id,
-                            date = selectedDate,
-                            trackingMethod = TrackingMethod.MANUAL
-                        )
-                    )
-                    focusManager.clearFocus()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = (amount.toDoubleOrNull() != null) && (amount.toDouble() > 0),
-                shape = MaterialTheme.shapes.large
-            ) {
-                Text("Save Transaction", style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-
-        // Auto-focus amount field when sheet opens
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
+                )
+                focusManager.clearFocus()
+            },
+            focusRequester = focusRequester
+        )
 
         if (showDatePicker) {
             DatePickerDialog(
@@ -247,5 +131,242 @@ fun AddTransactionSheet(
                 DatePicker(state = datePickerState)
             }
         }
+    }
+}
+
+@Composable
+fun AddTransactionContent(
+    amount: String,
+    onAmountChange: (String) -> Unit,
+    note: String,
+    onNoteChange: (String) -> Unit,
+    isIncome: Boolean,
+    onTypeChange: (Boolean) -> Unit,
+    selectedCategory: Category,
+    onCategoryChange: (Category) -> Unit,
+    selectedDate: Long,
+    onDateClick: () -> Unit,
+    onSave: () -> Unit,
+    focusRequester: FocusRequester = remember { FocusRequester() }
+) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 32.dp)
+            .fillMaxWidth()
+            .navigationBarsPadding(),
+    ) {
+        Text(
+            text = "New Transaction",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TransactionAmountField(
+            amount = amount,
+            onAmountChange = onAmountChange,
+            focusRequester = focusRequester
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TransactionTypeSelector(
+            isIncome = isIncome,
+            onTypeChange = onTypeChange
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TransactionCategorySelector(
+            selectedCategory = selectedCategory,
+            onCategoryChange = onCategoryChange
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TransactionDatePickerCard(
+            selectedDate = selectedDate,
+            onClick = onDateClick
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = note,
+            onValueChange = onNoteChange,
+            label = { Text("Note / Description") },
+            placeholder = { Text("e.g. Groceries") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = onSave,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            enabled = (amount.toDoubleOrNull() != null) && (amount.toDouble() > 0),
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text("Save Transaction", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+}
+
+@Composable
+fun TransactionAmountField(
+    amount: String,
+    onAmountChange: (String) -> Unit,
+    focusRequester: FocusRequester
+) {
+    OutlinedTextField(
+        value = amount,
+        onValueChange = { if (it.isEmpty() || it.toDoubleOrNull() != null) onAmountChange(it) },
+        label = { Text("Amount") },
+        textStyle = MaterialTheme.typography.titleLarge,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Decimal,
+            imeAction = ImeAction.Next
+        ),
+        prefix = { Text("₹", style = MaterialTheme.typography.titleLarge) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester),
+        shape = MaterialTheme.shapes.medium,
+    )
+}
+
+@Composable
+fun TransactionTypeSelector(
+    isIncome: Boolean,
+    onTypeChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        FilterChip(
+            modifier = Modifier.weight(1f),
+            selected = !isIncome,
+            onClick = { onTypeChange(false) },
+            label = {
+                Text(
+                    "Expense",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            },
+        )
+        FilterChip(
+            modifier = Modifier.weight(1f),
+            selected = isIncome,
+            onClick = { onTypeChange(true) },
+            label = {
+                Text(
+                    "Income",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            },
+        )
+    }
+}
+
+@Composable
+fun TransactionCategorySelector(
+    selectedCategory: Category,
+    onCategoryChange: (Category) -> Unit
+) {
+    Column {
+        Text("Select Category", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            items(transactionCategories) { category ->
+                FilterChip(
+                    selected = selectedCategory.id == category.id,
+                    onClick = { onCategoryChange(category) },
+                    label = { Text(category.name) },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = category.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = if (selectedCategory.id == category.id)
+                                category.color else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TransactionDatePickerCard(
+    selectedDate: Long,
+    onClick: () -> Unit
+) {
+    OutlinedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.CalendarToday, contentDescription = null)
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text("Transaction Date", style = MaterialTheme.typography.labelMedium)
+                Text(
+                    selectedDate.toDateString(),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    }
+}
+
+@PreviewLightDark
+@PreviewScreenSizes
+@Composable
+private fun AddTransactionContentPreview() {
+    OrioTheme {
+        AddTransactionContent(
+            amount = "500",
+            onAmountChange = {},
+            note = "Groceries",
+            onNoteChange = {},
+            isIncome = false,
+            onTypeChange = {},
+            selectedCategory = transactionCategories.first(),
+            onCategoryChange = {},
+            selectedDate = System.currentTimeMillis(),
+            onDateClick = {},
+            onSave = {}
+        )
+    }
+}
+
+@Preview(name = "Large Font", fontScale = 1.5f)
+@Composable
+private fun TransactionAmountFieldPreview() {
+    OrioTheme {
+        TransactionAmountField(
+            amount = "1234.56",
+            onAmountChange = {},
+            focusRequester = FocusRequester()
+        )
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,10 +39,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.quickthought.orio.domain.model.TransactionDomain
+import com.quickthought.orio.domain.model.TransactionFilterState
 import com.quickthought.orio.presentation.transactions.components.AddTransactionSheet
 import com.quickthought.orio.presentation.transactions.components.EditTransactionSheet
 import com.quickthought.orio.presentation.transactions.components.FilterSection
@@ -49,8 +54,8 @@ import com.quickthought.orio.presentation.transactions.components.TransactionIte
 import com.quickthought.orio.presentation.util.EmptyTransactionsState
 import com.quickthought.orio.presentation.util.OrioTopAppBar
 import com.quickthought.orio.ui.theme.OrioExpense
+import com.quickthought.orio.ui.theme.OrioTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionsScreen(
     modifier: Modifier = Modifier,
@@ -58,14 +63,37 @@ fun TransactionsScreen(
 ) {
     val filterState by viewModel.filterState.collectAsStateWithLifecycle()
     val filteredTransactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
-    val sheetState = rememberModalBottomSheetState()
-    val groupedTransactions = remember(filteredTransactions) {
-        derivedStateOf { filteredTransactions.groupBy { it.dateTimeString } }
-    }
-
-    var showSheet by remember { mutableStateOf(false) }
-    var transactionToDelete by remember { mutableStateOf<TransactionDomain?>(null) }
     val editingTransaction by viewModel.editingTransaction.collectAsStateWithLifecycle()
+
+    TransactionsScreenContent(
+        modifier = modifier,
+        filterState = filterState,
+        filteredTransactions = filteredTransactions,
+        editingTransaction = editingTransaction,
+        onFilterChange = viewModel::updateFilters,
+        onAddTransaction = viewModel::addTransaction,
+        onEditTransactionSelected = viewModel::onEditTransactionSelected,
+        onUpdateTransaction = viewModel::updateTransaction,
+        onDeleteTransaction = viewModel::deleteTransaction
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TransactionsScreenContent(
+    modifier: Modifier = Modifier,
+    filterState: TransactionFilterState,
+    filteredTransactions: List<TransactionDomain>,
+    editingTransaction: TransactionDomain?,
+    onFilterChange: (TransactionFilterState) -> Unit,
+    onAddTransaction: (TransactionDomain) -> Unit,
+    onEditTransactionSelected: (TransactionDomain?) -> Unit,
+    onUpdateTransaction: (TransactionDomain) -> Unit,
+    onDeleteTransaction: (TransactionDomain) -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState()
+    var showAddSheet by remember { mutableStateOf(false) }
+    var transactionToDelete by remember { mutableStateOf<TransactionDomain?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -75,176 +103,303 @@ fun TransactionsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showSheet = true }) {
+            FloatingActionButton(onClick = { showAddSheet = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Transaction")
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // --- STICKY HEADER SECTION ---
-            stickyHeader {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 2.dp // Subtle shadow when scrolling
+        TransactionList(
+            transactions = filteredTransactions,
+            filterState = filterState,
+            onFilterChange = onFilterChange,
+            onEdit = onEditTransactionSelected,
+            onDeleteRequest = { transactionToDelete = it },
+            contentPadding = paddingValues
+        )
+    }
+
+    if (showAddSheet) {
+        AddTransactionSheet(
+            sheetState = sheetState,
+            onDismiss = { showAddSheet = false },
+            onSave = {
+                onAddTransaction(it)
+                showAddSheet = false
+            }
+        )
+    }
+
+    transactionToDelete?.let { transaction ->
+        DeleteConfirmationDialog(
+            onConfirm = {
+                onDeleteTransaction(transaction)
+                transactionToDelete = null
+            },
+            onDismiss = { transactionToDelete = null }
+        )
+    }
+
+    editingTransaction?.let { transaction ->
+        EditTransactionSheet(
+            transaction = transaction,
+            onDismiss = { onEditTransactionSelected(null) },
+            onSave = { updated ->
+                onUpdateTransaction(updated)
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TransactionList(
+    transactions: List<TransactionDomain>,
+    filterState: TransactionFilterState,
+    onFilterChange: (TransactionFilterState) -> Unit,
+    onEdit: (TransactionDomain) -> Unit,
+    onDeleteRequest: (TransactionDomain) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    val groupedTransactions = remember(transactions) {
+        derivedStateOf { transactions.groupBy { it.dateTimeString } }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        stickyHeader {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp
+            ) {
+                FilterSection(
+                    state = filterState,
+                    onFilterChange = onFilterChange
+                )
+            }
+        }
+        if (transactions.isEmpty()) {
+            item {
+                Box(
+                    Modifier.fillParentMaxHeight(0.5f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    FilterSection(
-                        state = filterState,
-                        onFilterChange = { viewModel.updateFilters(it) }
-                    )
+                    EmptyTransactionsState()
                 }
             }
-            if (filteredTransactions.isEmpty()) {
-                item {
-                    Box(
-                        Modifier.fillParentMaxHeight(0.5f),
-                        contentAlignment = Alignment.Center
+        } else {
+            groupedTransactions.value.forEach { (date, dailyTransactions) ->
+                stickyHeader {
+                    Surface(
+                        Modifier.fillMaxWidth(),
+                        color = Color.Transparent
                     ) {
-                        EmptyTransactionsState()
+                        Text(
+                            date,
+                            Modifier.padding(8.dp),
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 }
-            } else {
-                groupedTransactions.value.forEach { (date, transactions) ->
-                    stickyHeader {
-                        Surface(
-                            Modifier.fillMaxWidth(),
-                            color = Color.Transparent
-                        ) {
-                            Text(
-                                date,
-                                Modifier.padding(8.dp),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        }
-                    }
-                    items(transactions, key = { it.transactionId }) { transaction ->
-
-                        var showOptionsDialog by remember { mutableStateOf(false) }
-
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            initialValue = SwipeToDismissBoxValue.Settled,
-                            positionalThreshold = { fullSize -> fullSize * 0.3f },
-                            confirmValueChange = { value ->
-                                if (value == SwipeToDismissBoxValue.EndToStart) {
-                                    transactionToDelete = transaction
-                                    false
-                                } else {
-                                    false
-                                }
-                            }
+                items(dailyTransactions, key = { it.transactionId }) { transaction ->
+                    SwipeableTransactionItem(
+                        transaction = transaction,
+                        onEdit = { onEdit(transaction) },
+                        onDelete = { onDeleteRequest(transaction) },
+                        modifier = Modifier.animateItem(
+                            fadeInSpec = tween(300),
+                            placementSpec = spring(
+                                stiffness = Spring.StiffnessLow,
+                                dampingRatio = Spring.DampingRatioLowBouncy
+                            ),
+                            fadeOutSpec = tween(200)
                         )
-
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            enableDismissFromEndToStart = true,
-                            enableDismissFromStartToEnd = false,
-                            backgroundContent = {
-                                val color = OrioExpense
-                                Box(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .background(color, MaterialTheme.shapes.medium)
-                                        .padding(horizontal = 20.dp),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                        ) {
-                            TransactionItem(
-                                transaction,
-                                modifier = Modifier
-                                    .combinedClickable(
-                                        onClick = {
-                                            viewModel.onEditTransactionSelected(transaction)
-                                        },
-                                        onLongClick = {
-                                            showOptionsDialog = true
-                                        })
-                                    .animateItem(
-                                        fadeInSpec = tween(300),
-                                        placementSpec = spring(
-                                            stiffness = Spring.StiffnessLow, // Makes movement "flow" rather than "snap"
-                                            dampingRatio = Spring.DampingRatioLowBouncy
-                                        ),
-                                        fadeOutSpec = tween(200)
-                                    )
-                            )
-
-                            if (showOptionsDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showOptionsDialog = false },
-                                    title = { Text("Transaction Options") },
-                                    text = { Text("Choose an action for this transaction.") },
-                                    confirmButton = {
-                                        TextButton(onClick = {
-                                            viewModel.onEditTransactionSelected(transaction)
-                                            showOptionsDialog = false
-                                        }) { Text("Edit") }
-                                    },
-                                    dismissButton = {
-                                        TextButton(onClick = {
-                                            transactionToDelete = transaction
-                                            showOptionsDialog = false
-                                        }) { Text("Delete", color = OrioExpense) }
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    )
                 }
             }
         }
     }
+}
 
-    // Add Transaction Bottom Sheet
-    if (showSheet) {
-        AddTransactionSheet(
-            sheetState = sheetState,
-            onDismiss = { showSheet = false },
-            onSave = {
-                viewModel.addTransaction(it)
-                showSheet = false
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SwipeableTransactionItem(
+    transaction: TransactionDomain,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showOptionsDialog by remember { mutableStateOf(false) }
+
+    val dismissState = rememberSwipeToDismissBoxState(
+        initialValue = SwipeToDismissBoxValue.Settled,
+        positionalThreshold = { fullSize -> fullSize * 0.3f },
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                false
+            } else {
+                false
             }
+        }
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromEndToStart = true,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            val color = OrioExpense
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(color, MaterialTheme.shapes.medium)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = Color.White
+                )
+            }
+        },
+        modifier = modifier
+    ) {
+        TransactionItem(
+            transaction,
+            modifier = Modifier
+                .combinedClickable(
+                    onClick = onEdit,
+                    onLongClick = { showOptionsDialog = true }
+                )
+        )
+
+        if (showOptionsDialog) {
+            TransactionOptionsDialog(
+                onEdit = {
+                    onEdit()
+                    showOptionsDialog = false
+                },
+                onDelete = {
+                    onDelete()
+                    showOptionsDialog = false
+                },
+                onDismiss = { showOptionsDialog = false }
+            )
+        }
+    }
+}
+
+@Composable
+fun TransactionOptionsDialog(
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Transaction Options") },
+        text = { Text("Choose an action for this transaction.") },
+        confirmButton = {
+            TextButton(onClick = onEdit) { Text("Edit") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDelete) { Text("Delete", color = OrioExpense) }
+        }
+    )
+}
+
+@Composable
+fun DeleteConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirm Deletion") },
+        text = { Text("Are you sure you want to delete this transaction?") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("Delete", color = OrioExpense) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@PreviewLightDark
+@PreviewScreenSizes
+@Composable
+private fun TransactionsScreenContentPopulatedPreview() {
+    OrioTheme {
+        TransactionsScreenContent(
+            filterState = TransactionFilterState(),
+            filteredTransactions = listOf(
+                TransactionDomain(
+                    transactionId = 1,
+                    amount = 500.0,
+                    category = "food",
+                    date = System.currentTimeMillis(),
+                    note = "Lunch",
+                    type = com.quickthought.orio.domain.model.TransactionType.EXPENSE
+                ),
+                TransactionDomain(
+                    transactionId = 2,
+                    amount = 1200.0,
+                    category = "shopping",
+                    date = System.currentTimeMillis(),
+                    note = "New shoes",
+                    type = com.quickthought.orio.domain.model.TransactionType.EXPENSE
+                )
+            ),
+            editingTransaction = null,
+            onFilterChange = {},
+            onAddTransaction = {},
+            onEditTransactionSelected = {},
+            onUpdateTransaction = {},
+            onDeleteTransaction = {}
         )
     }
+}
 
-    // Delete Confirmation Dialog
-    transactionToDelete?.let { transaction ->
-        AlertDialog(
-            onDismissRequest = { transactionToDelete = null },
-            title = { Text("Confirm Deletion") },
-            text = { Text("Are you sure you want to delete this transaction?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteTransaction(transaction)
-                    transactionToDelete = null
-                }) { Text("Delete", color = OrioExpense) }
-            },
-            dismissButton = {
-                TextButton(onClick = { transactionToDelete = null }) { Text("Cancel") }
-            }
+@Preview(name = "Empty - Large Font", fontScale = 1.5f)
+@Preview(name = "Empty - Dynamic Color", showBackground = true)
+@Composable
+private fun TransactionsScreenContentEmptyPreview() {
+    OrioTheme {
+        TransactionsScreenContent(
+            filterState = TransactionFilterState(),
+            filteredTransactions = emptyList(),
+            editingTransaction = null,
+            onFilterChange = {},
+            onAddTransaction = {},
+            onEditTransactionSelected = {},
+            onUpdateTransaction = {},
+            onDeleteTransaction = {}
         )
     }
+}
 
-    // Show Edit Sheet when a transaction is selected via Long Click -> Edit
-    editingTransaction?.let { transaction ->
-        EditTransactionSheet(
-            transaction = transaction,
-            onDismiss = { viewModel.onEditTransactionSelected(null) },
-            onSave = { updated ->
-                viewModel.updateTransaction(updated)
-            }
+@Preview(showBackground = true)
+@Composable
+private fun SwipeableTransactionItemPreview() {
+    OrioTheme {
+        SwipeableTransactionItem(
+            transaction = TransactionDomain(
+                amount = 100.0,
+                type = com.quickthought.orio.domain.model.TransactionType.EXPENSE,
+                category = "food",
+                date = System.currentTimeMillis(),
+                note = "Coffee"
+            ),
+            onEdit = {},
+            onDelete = {}
         )
     }
 }

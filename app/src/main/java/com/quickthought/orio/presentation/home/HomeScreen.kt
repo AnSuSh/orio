@@ -27,8 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.AndroidUiModes.UI_MODE_NIGHT_YES
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -53,14 +54,16 @@ fun HomeScreen(
 
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    HomeContent(modifier, state) { newBudget ->
-        viewModel.saveMonthlyBudget(newBudget)
-    }
+    HomeScreenContent(
+        modifier = modifier,
+        state = state,
+        onSaveMonthlyBudget = viewModel::saveMonthlyBudget
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeContent(
+fun HomeScreenContent(
     modifier: Modifier = Modifier,
     state: HomeState,
     onSaveMonthlyBudget: (Double) -> Unit = {},
@@ -180,11 +183,12 @@ private fun HomeContent(
     }
 }
 
-@Preview(showSystemUi = true)
+@PreviewLightDark
+@PreviewScreenSizes
 @Composable
-private fun HomeContentPrev() {
+private fun HomeScreenPreview() {
     OrioTheme {
-        HomeContent(
+        HomeScreenContent(
             state = HomeState(
                 totalIncome = 10000.0,
                 totalExpense = 5000.0,
@@ -205,26 +209,18 @@ private fun HomeContentPrev() {
     }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES, showSystemUi = true)
+@Preview(name = "Large Font", fontScale = 1.5f)
+@Preview(name = "Dynamic Color", showBackground = true)
 @Composable
-private fun HomeContentPrevDark() {
+private fun HomeScreenVariantsPreview() {
     OrioTheme {
-        HomeContent(
+        HomeScreenContent(
             state = HomeState(
-                totalIncome = 10000.0,
-                totalExpense = 5000.0,
-                monthlyBudget = 15000.0,
-                daysLeftInMonth = 10,
-                transactions = List(5) { i ->
-                    TransactionDomain(
-                        transactionId = i,
-                        amount = (i + 1) * 100.0,
-                        category = "Category ${i + 1}",
-                        date = System.currentTimeMillis(),
-                        note = "Transaction ${i + 1}",
-                        type = TransactionType.INCOME
-                    )
-                }
+                totalIncome = 25000.0,
+                totalExpense = 12000.0,
+                monthlyBudget = 30000.0,
+                daysLeftInMonth = 15,
+                transactions = emptyList()
             )
         )
     }

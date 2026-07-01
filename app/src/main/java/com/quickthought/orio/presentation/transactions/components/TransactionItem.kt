@@ -22,12 +22,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.quickthought.orio.domain.model.Category
 import com.quickthought.orio.domain.model.TransactionDomain
+import com.quickthought.orio.domain.model.TransactionType
 import com.quickthought.orio.domain.model.transactionCategories
 import com.quickthought.orio.ui.theme.OrioExpense
 import com.quickthought.orio.ui.theme.OrioIncome
+import com.quickthought.orio.ui.theme.OrioTheme
 
 @Composable
 fun TransactionItem(
@@ -60,30 +63,30 @@ fun TransactionItem(
 
             Row(
                 modifier = Modifier
-                    .padding(start = 8.dp, top = 16.dp, bottom = 16.dp, end = 16.dp),
+                    .padding(start = 8.dp, top = 16.dp, bottom = 16.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Category Icon with Secondary Container background
                 Surface(
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = category.icon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(8.dp)
                     )
                 }
 
-                Spacer(Modifier.width(16.dp))
+                Spacer(Modifier.width(8.dp))
 
 
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = transaction.note,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
@@ -95,7 +98,7 @@ fun TransactionItem(
 
                 Text(
                     text = "${if (transaction.isIncome) "+" else "-"} ${transaction.localizedPriceString}",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     // Using your Primary for Income and Error for Expense
                     color = if (transaction.isIncome) OrioIncome else OrioExpense
                 )
@@ -107,4 +110,38 @@ fun TransactionItem(
 @Composable
 fun getCategoryById(id: String): Category {
     return transactionCategories.find { it.id == id } ?: transactionCategories.last()
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TransactionItemPreview() {
+    OrioTheme {
+        TransactionItem(
+            transaction = TransactionDomain(
+                amount = 100.0,
+                type = TransactionType.EXPENSE,
+                category = "food",
+                date = System.currentTimeMillis(),
+                note = "Starbucks Coffee"
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TransactionItemIncomePreview() {
+    OrioTheme {
+        TransactionItem(
+            transaction = TransactionDomain(
+                amount = 25000.0,
+                type = TransactionType.INCOME,
+                category = "salary",
+                date = System.currentTimeMillis(),
+                note = "Monthly Salary"
+            ),
+            modifier = Modifier.padding(16.dp)
+        )
+    }
 }

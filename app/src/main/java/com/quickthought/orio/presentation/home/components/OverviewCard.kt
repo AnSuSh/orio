@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.quickthought.orio.ui.theme.OrioIncome
 import com.quickthought.orio.ui.theme.OrioTheme
@@ -72,6 +74,7 @@ fun SummaryItem(label: String, amount: Double, color: Color, modifier: Modifier)
 }
 
 @PreviewLightDark
+@PreviewScreenSizes
 @Composable
 private fun BalanceOverviewPrev() {
     OrioTheme {
@@ -83,6 +86,7 @@ private fun BalanceOverviewPrev() {
     }
 }
 
+@Preview(name = "Large Font", fontScale = 1.5f)
 @PreviewLightDark
 @Composable
 private fun SummaryPreview() {

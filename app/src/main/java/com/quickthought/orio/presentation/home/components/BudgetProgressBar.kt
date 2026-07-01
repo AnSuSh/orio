@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +20,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import com.quickthought.orio.ui.theme.OrioGold
 import com.quickthought.orio.ui.theme.OrioTheme
@@ -117,7 +118,21 @@ fun BudgetProgressSection(
     }
 }
 
-@Preview
+@PreviewLightDark
+@PreviewScreenSizes
+@Composable
+private fun BudgetProgressPreviewMedium() {
+    OrioTheme {
+        BudgetProgressSection(
+            totalExpenses = 300000.0,
+            daysLeftInMonth = 15,
+            monthlyBudget = 500000.0
+        )
+    }
+}
+
+@Preview(name = "High - Large Font", fontScale = 1.5f)
+@PreviewLightDark
 @Composable
 private fun BudgetProgressPreviewHigh() {
     OrioTheme {
@@ -129,25 +144,13 @@ private fun BudgetProgressPreviewHigh() {
     }
 }
 
-@Preview
+@Preview(name = "Low - Dynamic Color", showBackground = true)
 @Composable
 private fun BudgetProgressPrevLow() {
     OrioTheme {
         BudgetProgressSection(
             totalExpenses = 100000.0,
             daysLeftInMonth = 20,
-            monthlyBudget = 500000.0
-        )
-    }
-}
-
-@Preview
-@Composable
-private fun BudgetProgressPrevMedium() {
-    OrioTheme {
-        BudgetProgressSection(
-            totalExpenses = 300000.0,
-            daysLeftInMonth = 15,
             monthlyBudget = 500000.0
         )
     }

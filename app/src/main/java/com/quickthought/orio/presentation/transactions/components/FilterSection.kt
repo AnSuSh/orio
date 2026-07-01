@@ -3,7 +3,6 @@ package com.quickthought.orio.presentation.transactions.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,16 +31,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.quickthought.orio.domain.model.TransactionFilterState
 import com.quickthought.orio.domain.model.TransactionTypeFilter
 import com.quickthought.orio.domain.model.transactionCategories
+import com.quickthought.orio.ui.theme.OrioTheme
 import java.util.Locale
 
 @Composable
 fun FilterSection(state: TransactionFilterState, onFilterChange: (TransactionFilterState) -> Unit) {
-    Column(modifier = Modifier
-        .padding(16.dp)
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
     ) {
         // Search Bar
         OutlinedTextField(
@@ -140,5 +143,32 @@ fun FilterSection(state: TransactionFilterState, onFilterChange: (TransactionFil
             }
         }
 
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun FilterSectionPreview() {
+    OrioTheme {
+        FilterSection(
+            state = TransactionFilterState(
+                searchQuery = "Coffee",
+                selectedCategory = "food"
+            ),
+            onFilterChange = {}
+        )
+    }
+}
+
+@Preview(name = "Large Font", fontScale = 1.5f)
+@Composable
+private fun FilterSectionLargeFontPreview() {
+    OrioTheme {
+        FilterSection(
+            state = TransactionFilterState(
+                typeFilter = TransactionTypeFilter.EXPENSE
+            ),
+            onFilterChange = {}
+        )
     }
 }

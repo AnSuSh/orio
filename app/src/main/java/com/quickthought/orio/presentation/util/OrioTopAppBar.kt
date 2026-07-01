@@ -1,7 +1,5 @@
 package com.quickthought.orio.presentation.util
 
-import android.content.res.Configuration.UI_MODE_NIGHT_NO
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -11,6 +9,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.quickthought.orio.BuildConfig
 import com.quickthought.orio.ui.theme.OrioTheme
 
@@ -40,18 +40,19 @@ fun OrioTopAppBar(title: String, modifier: Modifier = Modifier) {
     )
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_NO)
+@PreviewLightDark
+@PreviewScreenSizes
 @Composable
-private fun PreviewOrioTopAppBar() {
+private fun OrioTopAppBarPreview() {
     OrioTheme {
-        OrioTopAppBar("Orio")
+        OrioTopAppBar("Orio Dashboard")
     }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES)
+@Preview(name = "Large Font", fontScale = 1.5f)
 @Composable
-private fun PreviewOrioTopAppBarDark() {
+private fun OrioTopAppBarLargeFontPreview() {
     OrioTheme {
-        OrioTopAppBar("Orio")
+        OrioTopAppBar("Orio Transactions")
     }
 }
