@@ -13,10 +13,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -58,7 +63,8 @@ fun HomeScreen(
     HomeScreenContent(
         modifier = modifier,
         state = state,
-        onSaveMonthlyBudget = viewModel::saveMonthlyBudget
+        onSaveMonthlyBudget = viewModel::saveMonthlyBudget,
+        onAddTransaction = viewModel::addTransaction
     )
 }
 
@@ -68,8 +74,11 @@ fun HomeScreenContent(
     modifier: Modifier = Modifier,
     state: HomeState,
     onSaveMonthlyBudget: (Double) -> Unit = {},
+    onAddTransaction: (TransactionDomain) -> Unit = {}
 ) {
     var showBudgetDialog by remember { mutableStateOf(false) }
+    var showAddSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
     // A key to force animation replay
     var budgetAnimKey by remember { mutableIntStateOf(0) }
 
@@ -94,6 +103,11 @@ fun HomeScreenContent(
         topBar = {
             OrioTopAppBar("Orio - Dashboard")
         },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showAddSheet = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Add Transaction")
+            }
+        }
     ) { innerPadding ->
         AdaptiveWrapper(modifier = Modifier.padding(innerPadding)) {
             LazyColumn(
@@ -180,6 +194,17 @@ fun HomeScreenContent(
                 onSaveMonthlyBudget(newBudget)
                 showBudgetDialog = false
                 budgetAnimKey++
+            }
+        )
+    }
+
+    if (showAddSheet) {
+        com.quickthought.orio.presentation.transactions.components.AddTransactionSheet(
+            sheetState = sheetState,
+            onDismiss = { showAddSheet = false },
+            onSave = {
+                onAddTransaction(it)
+                showAddSheet = false
             }
         )
     }

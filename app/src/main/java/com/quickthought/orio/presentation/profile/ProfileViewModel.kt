@@ -25,6 +25,7 @@ class ProfileViewModel @Inject constructor(
         observeBudget()
         observeThemeSetting()
         observePremiumStatus()
+        observeAutoTrackingStatus()
     }
 
     private fun observeBudget() {
@@ -47,6 +48,14 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             preferenceManager.isPremium.collect { isPremium ->
                 _state.update { it.copy(isPremium = isPremium) }
+            }
+        }
+    }
+
+    private fun observeAutoTrackingStatus() {
+        viewModelScope.launch {
+            preferenceManager.isAutoTrackingEnabled.collect { isEnabled ->
+                _state.update { it.copy(isAutoTrackingEnabled = isEnabled) }
             }
         }
     }
@@ -77,6 +86,12 @@ class ProfileViewModel @Inject constructor(
     fun savePremiumStatus(isPremium: Boolean) {
         viewModelScope.launch {
             preferenceManager.savePremiumStatus(isPremium)
+        }
+    }
+
+    fun saveAutoTrackingStatus(isEnabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.saveAutoTrackingStatus(isEnabled)
         }
     }
 }

@@ -1,7 +1,11 @@
 package com.quickthought.orio.presentation.profile
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,6 +40,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -78,6 +86,7 @@ fun ProfileScreen(
         state = state,
         onThemeChange = viewModel::saveThemeSetting,
         onPremiumChange = viewModel::savePremiumStatus,
+        onAutoTrackingChange = viewModel::saveAutoTrackingStatus,
         onSaveBudget = { budgetValue ->
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             viewModel.onSaveBudget(budgetValue)
@@ -113,9 +122,27 @@ fun ProfileContent(
     state: ProfileState,
     onThemeChange: (AppTheme) -> Unit,
     onPremiumChange: (Boolean) -> Unit,
+    onAutoTrackingChange: (Boolean) -> Unit,
     onSaveBudget: (String) -> Unit,
     onSendFeedback: () -> Unit
 ) {
+    var showPrivacyDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.RECEIVE_SMS] == true ||
+                permissions[Manifest.permission.READ_SMS] == true
+        if (granted) {
+            onAutoTrackingChange(true)
+        } else {
+            Toast.makeText(context, "Permissions required for auto tracking", Toast.LENGTH_SHORT)
+                .show()
+            onAutoTrackingChange(false)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -143,9 +170,17 @@ fun ProfileContent(
 
                 HorizontalDivider()
 
-                PremiumToggle(
+                ExperimentalSection(
                     isPremium = state.isPremium,
-                    onPremiumChange = onPremiumChange
+                    onPremiumChange = onPremiumChange,
+                    isAutoTrackingEnabled = state.isAutoTrackingEnabled,
+                    onAutoTrackingToggle = { enabled ->
+                        if (enabled) {
+                            showPrivacyDialog = true
+                        } else {
+                            onAutoTrackingChange(false)
+                        }
+                    }
                 )
 
                 HorizontalDivider()
@@ -161,6 +196,32 @@ fun ProfileContent(
                     onSendFeedback = onSendFeedback
                 )
             }
+        }
+
+        if (showPrivacyDialog) {
+            PrivacyDisclosureDialog(
+                onDismiss = { showPrivacyDialog = false },
+                onConfirm = {
+                    showPrivacyDialog = false
+                    val hasReceiveSms = ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.RECEIVE_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+                    val hasReadSms = ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.READ_SMS
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    if (hasReceiveSms || hasReadSms) {
+                        onAutoTrackingChange(true)
+                    } else {
+                        permissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.RECEIVE_SMS,
+                                Manifest.permission.READ_SMS
+                            )
+                        )
+                    }
+                }
+            )
         }
     }
 }
@@ -199,32 +260,102 @@ private fun ThemeSelector(
 }
 
 @Composable
-private fun PremiumToggle(
+private fun ExperimentalSection(
     isPremium: Boolean,
-    onPremiumChange: (Boolean) -> Unit
+    onPremiumChange: (Boolean) -> Unit,
+    isAutoTrackingEnabled: Boolean,
+    onAutoTrackingToggle: (Boolean) -> Unit
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row {
+            Icon(
+                // Experiments icon
+                Icons.Default.Flag,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(8.dp))
             Text(
-                text = "Orio Premium",
+                text = "Experimental Features",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-            Text(
-                text = "Try premium features for free until stable!",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Orio Premium",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "Try premium features for free until stable!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = isPremium,
+                onCheckedChange = onPremiumChange
             )
         }
-        Switch(
-            checked = isPremium,
-            onCheckedChange = onPremiumChange
-        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Auto Message Tracking",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "Automatically track transactions from SMS.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = isAutoTrackingEnabled,
+                onCheckedChange = onAutoTrackingToggle
+            )
+        }
     }
+}
+
+@Composable
+private fun PrivacyDisclosureDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Privacy Information") },
+        text = {
+            Text(
+                "Auto Message Tracking requires access to your SMS to identify transaction alerts. " +
+                        "This data is used ONLY to track your funds and help you manage your budget. " +
+                        "No personal messages or other sensitive information are accessed or stored."
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Agree & Continue")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
@@ -313,10 +444,12 @@ private fun ProfileContentPreview() {
             state = ProfileState(
                 monthlyBudget = 10000.0,
                 appTheme = AppTheme.DARK,
-                isPremium = true
+                isPremium = true,
+                isAutoTrackingEnabled = false
             ),
             onThemeChange = {},
             onPremiumChange = {},
+            onAutoTrackingChange = {},
             onSaveBudget = {},
             onSendFeedback = {}
         )
@@ -332,10 +465,12 @@ private fun ProfileContentVariantsPreview() {
             state = ProfileState(
                 monthlyBudget = 5000.0,
                 appTheme = AppTheme.LIGHT,
-                isPremium = false
+                isPremium = false,
+                isAutoTrackingEnabled = true
             ),
             onThemeChange = {},
             onPremiumChange = {},
+            onAutoTrackingChange = {},
             onSaveBudget = {},
             onSendFeedback = {}
         )

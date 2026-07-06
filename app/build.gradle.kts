@@ -26,8 +26,8 @@ android {
         applicationId = "com.quickthought.orio"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "0.2.1-parser"
+        versionCode = 7
+        versionName = "0.2.3-experiments"
 
         testInstrumentationRunner = "com.quickthought.orio.core.di.HiltTestRunner"
 
