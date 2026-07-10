@@ -4,6 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -19,13 +26,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.lifecycle.lifecycleScope
 import com.quickthought.orio.core.OrioLogger
 import com.quickthought.orio.domain.model.AppTheme
 import com.quickthought.orio.domain.util.SmsEntityExtractor
@@ -98,10 +105,35 @@ fun MainAppScreen(
         NavigationSuiteScaffold(
             navigationSuiteItems = {
                 items.forEach { screen ->
+                    val isSelected =
+                        currentDestination?.hierarchy?.any { it.route == screen.route } == true
                     item(
-                        icon = { Icon(screen.icon, contentDescription = screen.route) },
+                        icon = {
+                            val icon =
+                                if (isSelected) screen.selectedIcon else screen.unselectedIcon
+                            AnimatedContent(
+                                targetState = icon,
+                                transitionSpec = {
+                                    (fadeIn(animationSpec = tween(200, delayMillis = 50)) +
+                                            scaleIn(
+                                                initialScale = 0.8f,
+                                                animationSpec = tween(200, delayMillis = 50)
+                                            ))
+                                        .togetherWith(
+                                            fadeOut(animationSpec = tween(150)) +
+                                                    scaleOut(
+                                                        targetScale = 0.8f,
+                                                        animationSpec = tween(150)
+                                                    )
+                                        )
+                                },
+                                label = "NavIconAnimation"
+                            ) { targetIcon ->
+                                Icon(targetIcon, contentDescription = screen.route)
+                            }
+                        },
                         label = { Text(screen.title) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        selected = isSelected,
                         onClick = {
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
