@@ -7,7 +7,7 @@ interface TransactionsRepository {
 
     fun getAllTransactions(): Flow<List<TransactionDomain>>
 
-    suspend fun insertTransaction(transaction: TransactionDomain)
+    suspend fun insertTransaction(transaction: TransactionDomain): Long
 
     suspend fun deleteTransaction(transaction: TransactionDomain)
 

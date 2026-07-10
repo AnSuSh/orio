@@ -35,10 +35,11 @@ import com.quickthought.orio.ui.theme.OrioTheme
 @Composable
 fun TransactionItem(
     transaction: TransactionDomain,
+    categories: List<Category>,
     modifier: Modifier = Modifier
 ) {
 
-    val category = getCategoryById(transaction.category)
+    val category = getCategoryById(transaction.category, categories)
 
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
@@ -108,8 +109,10 @@ fun TransactionItem(
 }
 
 @Composable
-fun getCategoryById(id: String): Category {
-    return transactionCategories.find { it.id == id } ?: transactionCategories.last()
+fun getCategoryById(id: String, categories: List<Category>): Category {
+    return categories.find { it.id == id }
+        ?: transactionCategories.find { it.id == id }
+        ?: transactionCategories.last()
 }
 
 @Preview(showBackground = true)
@@ -124,6 +127,7 @@ fun TransactionItemPreview() {
                 date = System.currentTimeMillis(),
                 note = "Starbucks Coffee"
             ),
+            categories = emptyList(),
             modifier = Modifier.padding(16.dp)
         )
     }
@@ -141,6 +145,7 @@ fun TransactionItemIncomePreview() {
                 date = System.currentTimeMillis(),
                 note = "Monthly Salary"
             ),
+            categories = emptyList(),
             modifier = Modifier.padding(16.dp)
         )
     }

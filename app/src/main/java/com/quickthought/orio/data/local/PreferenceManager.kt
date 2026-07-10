@@ -20,6 +20,7 @@ class PreferenceManager @Inject constructor(
     private val themeKey = intPreferencesKey("app_theme")
     private val isPremiumKey = booleanPreferencesKey("is_premium")
     private val isAutoTrackingEnabledKey = booleanPreferencesKey("is_auto_tracking_enabled")
+    private val categoriesInitializedKey = booleanPreferencesKey("categories_initialized")
 
     // Read the budget (returns a Flow)
     val monthlyBudget: Flow<Double> = context.dataStore.data
@@ -41,6 +42,11 @@ class PreferenceManager @Inject constructor(
     val isAutoTrackingEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[isAutoTrackingEnabledKey] ?: false // Default value
+        }
+
+    val categoriesInitialized: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[categoriesInitializedKey] ?: false
         }
 
     // Save the budget
@@ -65,6 +71,12 @@ class PreferenceManager @Inject constructor(
     suspend fun saveAutoTrackingStatus(isEnabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[isAutoTrackingEnabledKey] = isEnabled
+        }
+    }
+
+    suspend fun setCategoriesInitialized(initialized: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[categoriesInitializedKey] = initialized
         }
     }
 }

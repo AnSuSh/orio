@@ -4,17 +4,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quickthought.orio.data.local.PreferenceManager
 import com.quickthought.orio.domain.model.AppTheme
+import com.quickthought.orio.domain.model.transactionCategories
+import com.quickthought.orio.domain.use_case.category.CategoryUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
+    private val categoryUseCases: CategoryUseCases
 ) : ViewModel() {
 
     // Using StateFlow for reactive UI updates
@@ -26,6 +30,17 @@ class ProfileViewModel @Inject constructor(
         observeThemeSetting()
         observePremiumStatus()
         observeAutoTrackingStatus()
+        ensureCategoriesInitialized()
+    }
+
+    private fun ensureCategoriesInitialized() {
+        viewModelScope.launch {
+            val initialized = preferenceManager.categoriesInitialized.first()
+            if (!initialized) {
+                categoryUseCases.prePopulateCategories(transactionCategories)
+                preferenceManager.setCategoriesInitialized(true)
+            }
+        }
     }
 
     private fun observeBudget() {

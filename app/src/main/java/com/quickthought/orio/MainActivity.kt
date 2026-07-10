@@ -30,7 +30,9 @@ import com.quickthought.orio.core.OrioLogger
 import com.quickthought.orio.domain.model.AppTheme
 import com.quickthought.orio.domain.util.SmsEntityExtractor
 import com.quickthought.orio.presentation.Screen
+import com.quickthought.orio.presentation.accounts.AccountsScreen
 import com.quickthought.orio.presentation.analytics.AnalyticsScreen
+import com.quickthought.orio.presentation.category.CategoryManagementScreen
 import com.quickthought.orio.presentation.home.HomeScreen
 import com.quickthought.orio.presentation.profile.ProfileScreen
 import com.quickthought.orio.presentation.profile.ProfileViewModel
@@ -85,7 +87,13 @@ fun MainAppScreen(
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
 
-        val items = listOf(Screen.Home, Screen.Transactions, Screen.Analytics, Screen.Profile)
+        val items = listOf(
+            Screen.Home,
+            Screen.Accounts,
+            Screen.Transactions,
+            Screen.Analytics,
+            Screen.Profile
+        )
 
         NavigationSuiteScaffold(
             navigationSuiteItems = {
@@ -115,9 +123,21 @@ fun MainAppScreen(
                     .consumeWindowInsets(WindowInsets.navigationBars)
             ) {
                 composable(Screen.Home.route) { HomeScreen() }
+                composable(Screen.Accounts.route) { AccountsScreen() }
                 composable(Screen.Transactions.route) { TransactionsScreen() }
                 composable(Screen.Analytics.route) { AnalyticsScreen() }
-                composable(Screen.Profile.route) { ProfileScreen() }
+                composable(Screen.Profile.route) {
+                    ProfileScreen(
+                        onNavigateToCategoryManagement = {
+                            navController.navigate(Screen.CategoryManagement.route)
+                        }
+                    )
+                }
+                composable(Screen.CategoryManagement.route) {
+                    CategoryManagementScreen(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

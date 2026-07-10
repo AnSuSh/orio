@@ -10,7 +10,9 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.quickthought.orio.data.local.entity.CategoryData
 
 // domain/model/Category.kt
 data class Category(
@@ -19,6 +21,43 @@ data class Category(
     val icon: ImageVector,
     val color: Color
 )
+
+fun Category.toCategoryData(): CategoryData {
+    return CategoryData(
+        id = id,
+        name = name,
+        iconName = getIconName(icon),
+        colorHex = String.format("#%06X", 0xFFFFFF and color.toArgb())
+    )
+}
+
+fun CategoryData.toCategory(): Category {
+    return Category(
+        id = id,
+        name = name,
+        icon = getIconByName(iconName),
+        color = Color(android.graphics.Color.parseColor(colorHex))
+    )
+}
+
+val availableIcons = mapOf(
+    "Restaurant" to Icons.Default.Restaurant,
+    "HealthAndSafety" to Icons.Default.HealthAndSafety,
+    "Payments" to Icons.Default.Payments,
+    "DirectionsBus" to Icons.Default.DirectionsBus,
+    "ShoppingBag" to Icons.Default.ShoppingBag,
+    "MusicVideo" to Icons.Default.MusicVideo,
+    "School" to Icons.Default.School,
+    "Category" to Icons.Default.Category
+)
+
+fun getIconByName(name: String): ImageVector {
+    return availableIcons[name] ?: Icons.Default.Category
+}
+
+fun getIconName(icon: ImageVector): String {
+    return availableIcons.entries.find { it.value == icon }?.key ?: "Category"
+}
 
 // Define a static list of categories for now
 val transactionCategories = listOf(

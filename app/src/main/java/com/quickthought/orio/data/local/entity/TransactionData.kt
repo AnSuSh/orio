@@ -15,5 +15,6 @@ data class TransactionData(
     val rawMessage: String? = null,
     val isSynced: Boolean = false,
     val remoteId: String? = null,
-    val lastModified: Long = System.currentTimeMillis()
+    val lastModified: Long = System.currentTimeMillis(),
+    val accountId: Int? = null
 )

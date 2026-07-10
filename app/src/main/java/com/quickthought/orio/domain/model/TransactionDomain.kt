@@ -25,7 +25,8 @@ data class TransactionDomain(
     val rawMessage: String? = null,
     val isSynced: Boolean = false,
     val remoteId: String? = null,
-    val lastModified: Long = System.currentTimeMillis()
+    val lastModified: Long = System.currentTimeMillis(),
+    val accountId: Int? = null
 ) {
     /** Returns true if the transaction is an income. */
     val isIncome: Boolean = type == TransactionType.INCOME
@@ -60,7 +61,8 @@ fun TransactionDomain.toTransactionData(): TransactionData {
         rawMessage,
         isSynced,
         remoteId,
-        lastModified
+        lastModified,
+        accountId
     )
 }
 

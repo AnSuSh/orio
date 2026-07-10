@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.quickthought.orio.domain.model.AccountDomain
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionType
 import com.quickthought.orio.presentation.home.components.BalanceOverview
@@ -59,10 +60,14 @@ fun HomeScreen(
 ) {
 
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
 
     HomeScreenContent(
         modifier = modifier,
         state = state,
+        accounts = accounts,
+        categories = categories,
         onSaveMonthlyBudget = viewModel::saveMonthlyBudget,
         onAddTransaction = viewModel::addTransaction
     )
@@ -73,8 +78,10 @@ fun HomeScreen(
 fun HomeScreenContent(
     modifier: Modifier = Modifier,
     state: HomeState,
+    accounts: List<AccountDomain> = emptyList(),
+    categories: List<com.quickthought.orio.domain.model.Category> = emptyList(),
     onSaveMonthlyBudget: (Double) -> Unit = {},
-    onAddTransaction: (TransactionDomain) -> Unit = {}
+    onAddTransaction: (TransactionDomain, Int?) -> Unit = { _, _ -> }
 ) {
     var showBudgetDialog by remember { mutableStateOf(false) }
     var showAddSheet by remember { mutableStateOf(false) }
@@ -176,7 +183,10 @@ fun HomeScreenContent(
                     }
                 } else {
                     items(state.transactions.take(5), key = { it.transactionId }) { transaction ->
-                        TransactionItem(transaction)
+                        TransactionItem(
+                            transaction = transaction,
+                            categories = categories
+                        )
                     }
                 }
             }
@@ -201,9 +211,11 @@ fun HomeScreenContent(
     if (showAddSheet) {
         com.quickthought.orio.presentation.transactions.components.AddTransactionSheet(
             sheetState = sheetState,
+            accounts = accounts,
+            categories = categories,
             onDismiss = { showAddSheet = false },
-            onSave = {
-                onAddTransaction(it)
+            onSave = { transaction, splitCount ->
+                onAddTransaction(transaction, splitCount)
                 showAddSheet = false
             }
         )

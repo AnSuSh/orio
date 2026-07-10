@@ -6,8 +6,14 @@ import com.quickthought.orio.data.local.MIGRATION_1_2
 import com.quickthought.orio.data.local.MIGRATION_2_3
 import com.quickthought.orio.data.local.MIGRATION_3_4
 import com.quickthought.orio.data.local.MIGRATION_4_5
+import com.quickthought.orio.data.local.MIGRATION_5_6
+import com.quickthought.orio.data.local.MIGRATION_6_7
+import com.quickthought.orio.data.local.MIGRATION_7_8
 import com.quickthought.orio.data.local.OrioDatabase
 import com.quickthought.orio.data.local.PreferenceManager
+import com.quickthought.orio.data.local.dao.AccountsDAO
+import com.quickthought.orio.data.local.dao.CategoryDAO
+import com.quickthought.orio.data.local.dao.DebtsDAO
 import com.quickthought.orio.data.local.dao.TransactionsDAO
 import dagger.Module
 import dagger.Provides
@@ -27,7 +33,15 @@ object AppModule {
             OrioDatabase::class.java,
             OrioDatabase.DATABASE_NAME
         )
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .addMigrations(
+                MIGRATION_1_2,
+                MIGRATION_2_3,
+                MIGRATION_3_4,
+                MIGRATION_4_5,
+                MIGRATION_5_6,
+                MIGRATION_6_7,
+                MIGRATION_7_8
+            )
             .build()
     }
 
@@ -41,5 +55,23 @@ object AppModule {
     @Singleton
     fun provideTransactionsDao(db: OrioDatabase): TransactionsDAO {
         return db.transactionsDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountsDao(db: OrioDatabase): AccountsDAO {
+        return db.accountsDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideDebtsDao(db: OrioDatabase): DebtsDAO {
+        return db.debtsDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryDao(db: OrioDatabase): CategoryDAO {
+        return db.categoryDao()
     }
 }

@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.quickthought.orio.domain.model.AccountDomain
 import com.quickthought.orio.domain.model.TransactionDomain
 import com.quickthought.orio.domain.model.TransactionFilterState
 import com.quickthought.orio.presentation.transactions.components.AddTransactionSheet
@@ -65,12 +66,16 @@ fun TransactionsScreen(
     val filterState by viewModel.filterState.collectAsStateWithLifecycle()
     val filteredTransactions by viewModel.filteredTransactions.collectAsStateWithLifecycle()
     val editingTransaction by viewModel.editingTransaction.collectAsStateWithLifecycle()
+    val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
 
     TransactionsScreenContent(
         modifier = modifier,
         filterState = filterState,
         filteredTransactions = filteredTransactions,
         editingTransaction = editingTransaction,
+        accounts = accounts,
+        categories = categories,
         onFilterChange = viewModel::updateFilters,
         onAddTransaction = viewModel::addTransaction,
         onEditTransactionSelected = viewModel::onEditTransactionSelected,
@@ -86,10 +91,12 @@ fun TransactionsScreenContent(
     filterState: TransactionFilterState,
     filteredTransactions: List<TransactionDomain>,
     editingTransaction: TransactionDomain?,
+    accounts: List<AccountDomain>,
+    categories: List<com.quickthought.orio.domain.model.Category>,
     onFilterChange: (TransactionFilterState) -> Unit,
-    onAddTransaction: (TransactionDomain) -> Unit,
+    onAddTransaction: (TransactionDomain, Int?) -> Unit,
     onEditTransactionSelected: (TransactionDomain?) -> Unit,
-    onUpdateTransaction: (TransactionDomain) -> Unit,
+    onUpdateTransaction: (TransactionDomain, Boolean, Boolean) -> Unit,
     onDeleteTransaction: (TransactionDomain) -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -113,6 +120,7 @@ fun TransactionsScreenContent(
             TransactionList(
                 transactions = filteredTransactions,
                 filterState = filterState,
+                categories = categories,
                 onFilterChange = onFilterChange,
                 onEdit = onEditTransactionSelected,
                 onDeleteRequest = { transactionToDelete = it }
@@ -123,9 +131,11 @@ fun TransactionsScreenContent(
     if (showAddSheet) {
         AddTransactionSheet(
             sheetState = sheetState,
+            accounts = accounts,
+            categories = categories,
             onDismiss = { showAddSheet = false },
-            onSave = {
-                onAddTransaction(it)
+            onSave = { transaction, splitCount ->
+                onAddTransaction(transaction, splitCount)
                 showAddSheet = false
             }
         )
@@ -144,9 +154,10 @@ fun TransactionsScreenContent(
     editingTransaction?.let { transaction ->
         EditTransactionSheet(
             transaction = transaction,
+            categories = categories,
             onDismiss = { onEditTransactionSelected(null) },
-            onSave = { updated ->
-                onUpdateTransaction(updated)
+            onSave = { updated, isInvestment, isSelfTransfer ->
+                onUpdateTransaction(updated, isInvestment, isSelfTransfer)
             }
         )
     }
@@ -157,6 +168,7 @@ fun TransactionsScreenContent(
 fun TransactionList(
     transactions: List<TransactionDomain>,
     filterState: TransactionFilterState,
+    categories: List<com.quickthought.orio.domain.model.Category>,
     onFilterChange: (TransactionFilterState) -> Unit,
     onEdit: (TransactionDomain) -> Unit,
     onDeleteRequest: (TransactionDomain) -> Unit,
@@ -181,6 +193,7 @@ fun TransactionList(
             ) {
                 FilterSection(
                     state = filterState,
+                    categories = categories,
                     onFilterChange = onFilterChange
                 )
             }
@@ -211,6 +224,7 @@ fun TransactionList(
                 items(dailyTransactions, key = { it.transactionId }) { transaction ->
                     SwipeableTransactionItem(
                         transaction = transaction,
+                        categories = categories,
                         onEdit = { onEdit(transaction) },
                         onDelete = { onDeleteRequest(transaction) },
                         modifier = Modifier.animateItem(
@@ -232,6 +246,7 @@ fun TransactionList(
 @Composable
 fun SwipeableTransactionItem(
     transaction: TransactionDomain,
+    categories: List<com.quickthought.orio.domain.model.Category>,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
@@ -274,7 +289,8 @@ fun SwipeableTransactionItem(
         modifier = modifier
     ) {
         TransactionItem(
-            transaction,
+            transaction = transaction,
+            categories = categories,
             modifier = Modifier
                 .combinedClickable(
                     onClick = onEdit,
@@ -361,10 +377,12 @@ private fun TransactionsScreenContentPopulatedPreview() {
                 )
             ),
             editingTransaction = null,
+            accounts = emptyList(),
+            categories = emptyList(),
             onFilterChange = {},
-            onAddTransaction = {},
+            onAddTransaction = { _, _ -> },
             onEditTransactionSelected = {},
-            onUpdateTransaction = {},
+            onUpdateTransaction = { _, _, _ -> },
             onDeleteTransaction = {}
         )
     }
@@ -379,10 +397,12 @@ private fun TransactionsScreenContentEmptyPreview() {
             filterState = TransactionFilterState(),
             filteredTransactions = emptyList(),
             editingTransaction = null,
+            accounts = emptyList(),
+            categories = emptyList(),
             onFilterChange = {},
-            onAddTransaction = {},
+            onAddTransaction = { _, _ -> },
             onEditTransactionSelected = {},
-            onUpdateTransaction = {},
+            onUpdateTransaction = { _, _, _ -> },
             onDeleteTransaction = {}
         )
     }
@@ -400,6 +420,7 @@ private fun SwipeableTransactionItemPreview() {
                 date = System.currentTimeMillis(),
                 note = "Coffee"
             ),
+            categories = emptyList(),
             onEdit = {},
             onDelete = {}
         )

@@ -21,6 +21,7 @@ fun TransactionData.toTransactionDomain(): TransactionDomain {
         rawMessage = rawMessage,
         isSynced = isSynced,
         remoteId = remoteId,
-        lastModified = lastModified
+        lastModified = lastModified,
+        accountId = accountId
     )
 }

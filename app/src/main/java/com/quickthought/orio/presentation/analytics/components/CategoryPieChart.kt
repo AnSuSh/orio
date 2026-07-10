@@ -43,11 +43,11 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Composable
-fun CategoryPieChart(data: Map<String, Double>, modifier: Modifier = Modifier) {
-    val colors = listOf(
-        Color(0xFF4285F4), Color(0xFF34A853), Color(0xFFFBBC05),
-        Color(0xFFEA4335), Color(0xFF46BDC6), Color(0xFFFF6D01)
-    )
+fun CategoryPieChart(
+    data: Map<String, Double>,
+    categories: List<com.quickthought.orio.domain.model.Category>,
+    modifier: Modifier = Modifier
+) {
     val total = data.values.sum()
     val slices = data.toList()
 
@@ -185,6 +185,8 @@ fun CategoryPieChart(data: Map<String, Double>, modifier: Modifier = Modifier) {
                 slices.forEachIndexed { index, pair ->
                     val sweepAngle = (pair.second / total * 360f).toFloat()
                     val isSelected = index == selectedIndex
+                    val sliceCategory = categories.find { it.id == pair.first }
+                    val sliceColor = sliceCategory?.color ?: Color.Gray
 
                     // Exploding effect: offset the selected slice
                     val midAngle = startAngle + sweepAngle / 2f
@@ -194,7 +196,7 @@ fun CategoryPieChart(data: Map<String, Double>, modifier: Modifier = Modifier) {
                     val offsetY = sin(midAngleRad).toFloat() * offsetDistance
 
                     drawArc(
-                        color = colors[index % colors.size],
+                        color = sliceColor,
                         startAngle = startAngle,
                         sweepAngle = sweepAngle,
                         useCenter = true,
@@ -222,9 +224,10 @@ fun CategoryPieChart(data: Map<String, Double>, modifier: Modifier = Modifier) {
 
         if (selectedIndex != -1) {
             val selectedSlice = slices[selectedIndex]
+            val selectedCategory = categories.find { it.id == selectedSlice.first }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = selectedSlice.first,
+                    text = selectedCategory?.name ?: selectedSlice.first,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -271,12 +274,13 @@ private fun CategoryPieChartPreview() {
     OrioTheme {
         CategoryPieChart(
             data = mapOf(
-                "Food" to 1500.0,
-                "Transport" to 800.0,
-                "Entertainment" to 1200.0,
-                "Shopping" to 2000.0,
-                "Health" to 500.0
+                "food" to 1500.0,
+                "transport" to 800.0,
+                "entertainment" to 1200.0,
+                "shopping" to 2000.0,
+                "health" to 500.0
             ),
+            categories = com.quickthought.orio.domain.model.transactionCategories,
             modifier = Modifier
                 .padding(32.dp)
         )

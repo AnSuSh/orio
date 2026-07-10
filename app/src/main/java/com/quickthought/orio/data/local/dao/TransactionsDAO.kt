@@ -15,7 +15,7 @@ interface TransactionsDAO {
     fun getAllTransactions(): Flow<List<TransactionData>>
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
-    suspend fun insertTransaction(transaction: TransactionData)
+    suspend fun insertTransaction(transaction: TransactionData): Long
 
     @Delete
     suspend fun deleteTransaction(transaction: TransactionData)

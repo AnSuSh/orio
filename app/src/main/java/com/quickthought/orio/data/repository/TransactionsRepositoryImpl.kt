@@ -19,8 +19,8 @@ class TransactionsRepositoryImpl @Inject constructor(private val dao: Transactio
         }.distinctUntilChanged()
             .flowOn(Dispatchers.Default)
 
-    override suspend fun insertTransaction(transaction: TransactionDomain) {
-        dao.insertTransaction(transaction.toTransactionData())
+    override suspend fun insertTransaction(transaction: TransactionDomain): Long {
+        return dao.insertTransaction(transaction.toTransactionData())
     }
 
     override suspend fun deleteTransaction(transaction: TransactionDomain) {

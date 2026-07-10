@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.quickthought.orio.data.local.PreferenceManager
 import com.quickthought.orio.domain.model.TransactionType
+import com.quickthought.orio.domain.repository.CategoryRepository
 import com.quickthought.orio.domain.repository.TransactionsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,13 +16,15 @@ import javax.inject.Inject
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
     private val repository: TransactionsRepository,
+    private val categoryRepository: CategoryRepository,
     preferenceManager: PreferenceManager
 ) : ViewModel() {
 
     val state: StateFlow<AnalyticsState> = combine(
         repository.getAllTransactions(),
+        categoryRepository.getAllCategories(),
         preferenceManager.isPremium
-    ) { transactions, isPremium ->
+    ) { transactions, categories, isPremium ->
         val categorySpending = transactions
             .filter { it.type == TransactionType.EXPENSE }
             .groupBy { it.category }
@@ -69,6 +72,7 @@ class AnalyticsViewModel @Inject constructor(
 
         AnalyticsState(
             categorySpending = categorySpending,
+            categories = categories,
             totalIncome = totalIncome,
             totalExpense = totalExpense,
             dailySpending = dailySpending,
@@ -83,6 +87,7 @@ class AnalyticsViewModel @Inject constructor(
 
 data class AnalyticsState(
     val categorySpending: Map<String, Double> = emptyMap(),
+    val categories: List<com.quickthought.orio.domain.model.Category> = emptyList(),
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
     val dailySpending: List<Pair<Long, Double>> = emptyList(),

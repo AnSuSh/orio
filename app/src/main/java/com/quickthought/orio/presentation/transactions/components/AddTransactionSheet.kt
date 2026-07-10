@@ -30,6 +30,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -52,6 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import com.quickthought.orio.domain.model.AccountDomain
 import com.quickthought.orio.domain.model.Category
 import com.quickthought.orio.domain.model.TrackingMethod
 import com.quickthought.orio.domain.model.TransactionDomain
@@ -64,14 +66,22 @@ import com.quickthought.orio.ui.theme.OrioTheme
 @Composable
 fun AddTransactionSheet(
     sheetState: SheetState,
+    accounts: List<AccountDomain>,
+    categories: List<Category>,
     onDismiss: () -> Unit,
-    onSave: (TransactionDomain) -> Unit
+    onSave: (TransactionDomain, Int?) -> Unit
 ) {
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var isIncome by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf(transactionCategories.first()) }
+    var selectedCategory by remember { 
+        mutableStateOf(categories.firstOrNull() ?: transactionCategories.first()) 
+    }
+    var selectedAccountId by remember { mutableStateOf<Int?>(null) }
     var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var isSplit by remember { mutableStateOf(false) }
+    var splitCount by remember { mutableStateOf("2") }
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDate
     )
@@ -96,10 +106,19 @@ fun AddTransactionSheet(
             onTypeChange = { isIncome = it },
             selectedCategory = selectedCategory,
             onCategoryChange = { selectedCategory = it },
+            accounts = accounts,
+            categories = categories,
+            selectedAccountId = selectedAccountId,
+            onAccountChange = { selectedAccountId = it },
+            isSplit = isSplit,
+            onSplitToggle = { isSplit = it },
+            splitCount = splitCount,
+            onSplitCountChange = { splitCount = it },
             selectedDate = selectedDate,
             onDateClick = { showDatePicker = true },
             onSave = {
                 val valAmount = amount.toDoubleOrNull() ?: 0.0
+                val finalSplitCount = if (isSplit) splitCount.toIntOrNull() else null
                 onSave(
                     TransactionDomain(
                         type = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE,
@@ -107,8 +126,10 @@ fun AddTransactionSheet(
                         note = note,
                         category = selectedCategory.id,
                         date = selectedDate,
-                        trackingMethod = TrackingMethod.MANUAL
-                    )
+                        trackingMethod = TrackingMethod.MANUAL,
+                        accountId = selectedAccountId
+                    ),
+                    finalSplitCount
                 )
                 focusManager.clearFocus()
             },
@@ -144,6 +165,14 @@ fun AddTransactionContent(
     onTypeChange: (Boolean) -> Unit,
     selectedCategory: Category,
     onCategoryChange: (Category) -> Unit,
+    accounts: List<AccountDomain>,
+    categories: List<Category>,
+    selectedAccountId: Int?,
+    onAccountChange: (Int?) -> Unit,
+    isSplit: Boolean,
+    onSplitToggle: (Boolean) -> Unit,
+    splitCount: String,
+    onSplitCountChange: (String) -> Unit,
     selectedDate: Long,
     onDateClick: () -> Unit,
     onSave: () -> Unit,
@@ -178,8 +207,28 @@ fun AddTransactionContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        TransactionAccountSelector(
+            accounts = accounts,
+            selectedAccountId = selectedAccountId,
+            onAccountChange = onAccountChange
+        )
+
+        if (!isIncome) {
+            Spacer(modifier = Modifier.height(16.dp))
+            TransactionSplitSection(
+                isSplit = isSplit,
+                onSplitToggle = onSplitToggle,
+                splitCount = splitCount,
+                onSplitCountChange = onSplitCountChange,
+                totalAmount = amount.toDoubleOrNull() ?: 0.0
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         TransactionCategorySelector(
             selectedCategory = selectedCategory,
+            categories = categories,
             onCategoryChange = onCategoryChange
         )
 
@@ -280,8 +329,91 @@ fun TransactionTypeSelector(
 }
 
 @Composable
+fun TransactionAccountSelector(
+    accounts: List<AccountDomain>,
+    selectedAccountId: Int?,
+    onAccountChange: (Int?) -> Unit
+) {
+    Column {
+        Text("Select Account", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            item {
+                FilterChip(
+                    selected = selectedAccountId == null,
+                    onClick = { onAccountChange(null) },
+                    label = { Text("None") }
+                )
+            }
+            items(accounts) { account ->
+                FilterChip(
+                    selected = selectedAccountId == account.id,
+                    onClick = { onAccountChange(account.id) },
+                    label = { Text(account.name) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TransactionSplitSection(
+    isSplit: Boolean,
+    onSplitToggle: (Boolean) -> Unit,
+    splitCount: String,
+    onSplitCountChange: (String) -> Unit,
+    totalAmount: Double
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Split with Others", style = MaterialTheme.typography.titleMedium)
+            Switch(checked = isSplit, onCheckedChange = onSplitToggle)
+        }
+
+        if (isSplit) {
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = splitCount,
+                onValueChange = { if (it.isEmpty() || it.toIntOrNull() != null) onSplitCountChange(it) },
+                label = { Text("Number of People") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
+
+            val count = splitCount.toIntOrNull() ?: 1
+            if (count > 1) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Your Share: ₹ %.2f".format(totalAmount / count),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        "Receivable: ₹ %.2f".format(totalAmount - (totalAmount / count)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun TransactionCategorySelector(
     selectedCategory: Category,
+    categories: List<Category>,
     onCategoryChange: (Category) -> Unit
 ) {
     Column {
@@ -291,7 +423,7 @@ fun TransactionCategorySelector(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            items(transactionCategories) { category ->
+            items(categories) { category ->
                 FilterChip(
                     selected = selectedCategory.id == category.id,
                     onClick = { onCategoryChange(category) },
@@ -352,6 +484,14 @@ private fun AddTransactionContentPreview() {
             onTypeChange = {},
             selectedCategory = transactionCategories.first(),
             onCategoryChange = {},
+            accounts = emptyList(),
+            categories = emptyList(),
+            selectedAccountId = null,
+            onAccountChange = {},
+            isSplit = false,
+            onSplitToggle = {},
+            splitCount = "2",
+            onSplitCountChange = {},
             selectedDate = System.currentTimeMillis(),
             onDateClick = {},
             onSave = {}

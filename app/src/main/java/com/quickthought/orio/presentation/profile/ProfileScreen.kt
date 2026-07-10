@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -74,6 +75,7 @@ import kotlin.math.roundToInt
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
+    onNavigateToCategoryManagement: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -87,6 +89,7 @@ fun ProfileScreen(
         onThemeChange = viewModel::saveThemeSetting,
         onPremiumChange = viewModel::savePremiumStatus,
         onAutoTrackingChange = viewModel::saveAutoTrackingStatus,
+        onNavigateToCategoryManagement = onNavigateToCategoryManagement,
         onSaveBudget = { budgetValue ->
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             viewModel.onSaveBudget(budgetValue)
@@ -123,6 +126,7 @@ fun ProfileContent(
     onThemeChange: (AppTheme) -> Unit,
     onPremiumChange: (Boolean) -> Unit,
     onAutoTrackingChange: (Boolean) -> Unit,
+    onNavigateToCategoryManagement: () -> Unit,
     onSaveBudget: (String) -> Unit,
     onSendFeedback: () -> Unit
 ) {
@@ -167,6 +171,18 @@ fun ProfileContent(
                     currentTheme = state.appTheme,
                     onThemeChange = onThemeChange
                 )
+
+                HorizontalDivider()
+
+                OutlinedButton(
+                    onClick = onNavigateToCategoryManagement,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Icon(Icons.Default.Settings, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Manage Categories")
+                }
 
                 HorizontalDivider()
 
@@ -450,6 +466,7 @@ private fun ProfileContentPreview() {
             onThemeChange = {},
             onPremiumChange = {},
             onAutoTrackingChange = {},
+            onNavigateToCategoryManagement = {},
             onSaveBudget = {},
             onSendFeedback = {}
         )
@@ -471,6 +488,7 @@ private fun ProfileContentVariantsPreview() {
             onThemeChange = {},
             onPremiumChange = {},
             onAutoTrackingChange = {},
+            onNavigateToCategoryManagement = {},
             onSaveBudget = {},
             onSendFeedback = {}
         )

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -52,6 +53,7 @@ fun AnalyticsContent(state: AnalyticsState, modifier: Modifier = Modifier) {
                     Spacer(modifier = Modifier.height(16.dp))
                     CategoryPieChart(
                         data = state.categorySpending,
+                        categories = state.categories,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp)
@@ -76,15 +78,38 @@ fun AnalyticsContent(state: AnalyticsState, modifier: Modifier = Modifier) {
             Text(text = "Details", style = MaterialTheme.typography.titleMedium)
         }
 
-        items(state.categorySpending.toList()) { (category, amount) ->
+        items(state.categorySpending.toList()) { (categoryId, amount) ->
+            val category = state.categories.find { it.id == categoryId }
+                ?: com.quickthought.orio.domain.model.transactionCategories.find { it.id == categoryId }
+            
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                 ) {
-                    Text(text = category)
+                    Row(
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        category?.let {
+                            androidx.compose.material3.Surface(
+                                shape = androidx.compose.foundation.shape.CircleShape,
+                                color = it.color.copy(alpha = 0.2f),
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                androidx.compose.material3.Icon(
+                                    imageVector = it.icon,
+                                    contentDescription = null,
+                                    tint = it.color,
+                                    modifier = Modifier.padding(4.dp)
+                                )
+                            }
+                        }
+                        Text(text = category?.name ?: categoryId)
+                    }
                     Text(text = "₹ $amount", style = MaterialTheme.typography.bodyLarge)
                 }
             }

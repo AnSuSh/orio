@@ -41,7 +41,11 @@ import com.quickthought.orio.ui.theme.OrioTheme
 import java.util.Locale
 
 @Composable
-fun FilterSection(state: TransactionFilterState, onFilterChange: (TransactionFilterState) -> Unit) {
+fun FilterSection(
+    state: TransactionFilterState,
+    categories: List<com.quickthought.orio.domain.model.Category>,
+    onFilterChange: (TransactionFilterState) -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -121,7 +125,7 @@ fun FilterSection(state: TransactionFilterState, onFilterChange: (TransactionFil
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(transactionCategories) { category ->
+            items(categories) { category ->
                 FilterChip(
                     selected = state.selectedCategory == category.id,
                     onClick = {
@@ -155,6 +159,7 @@ private fun FilterSectionPreview() {
                 searchQuery = "Coffee",
                 selectedCategory = "food"
             ),
+            categories = emptyList(),
             onFilterChange = {}
         )
     }
@@ -168,6 +173,7 @@ private fun FilterSectionLargeFontPreview() {
             state = TransactionFilterState(
                 typeFilter = TransactionTypeFilter.EXPENSE
             ),
+            categories = emptyList(),
             onFilterChange = {}
         )
     }

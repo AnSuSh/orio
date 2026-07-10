@@ -1,5 +1,6 @@
 package com.quickthought.orio.presentation.transactions.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,17 +49,26 @@ import com.quickthought.orio.ui.theme.OrioTheme
 @Composable
 fun EditTransactionSheet(
     transaction: TransactionDomain,
+    categories: List<com.quickthought.orio.domain.model.Category>,
     onDismiss: () -> Unit,
-    onSave: (TransactionDomain) -> Unit
+    onSave: (TransactionDomain, Boolean, Boolean) -> Unit
 ) {
     var amount by remember { mutableStateOf(transaction.amount.toString()) }
     var note by remember { mutableStateOf(transaction.note) }
     var isIncome by remember { mutableStateOf(transaction.isIncome) }
     var selectedCategory by remember {
-        mutableStateOf(transactionCategories.find { it.id == transaction.category }
-            ?: transactionCategories.last())
+        mutableStateOf(
+            categories.find { it.id == transaction.category }
+                ?: transactionCategories.find { it.id == transaction.category }
+                ?: categories.firstOrNull()
+                ?: transactionCategories.last()
+        )
     }
     var selectedDate by remember { mutableLongStateOf(transaction.date) }
+    var isInvestment by remember { mutableStateOf(false) }
+    var isSelfTransfer by remember { mutableStateOf(false) }
+    var showSelfTransferWarning by remember { mutableStateOf(false) }
+
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = selectedDate
@@ -74,9 +84,20 @@ fun EditTransactionSheet(
             isIncome = isIncome,
             onTypeChange = { isIncome = it },
             selectedCategory = selectedCategory,
+            categories = categories,
             onCategoryChange = { selectedCategory = it },
             selectedDate = selectedDate,
             onDateClick = { showDatePicker = true },
+            isInvestment = isInvestment,
+            onInvestmentToggle = { isInvestment = it },
+            isSelfTransfer = isSelfTransfer,
+            onSelfTransferToggle = {
+                if (it) {
+                    showSelfTransferWarning = true
+                } else {
+                    isSelfTransfer = false
+                }
+            },
             onSave = {
                 val updated = transaction.copy(
                     amount = amount.toDoubleOrNull() ?: transaction.amount,
@@ -85,9 +106,29 @@ fun EditTransactionSheet(
                     category = selectedCategory.id,
                     date = selectedDate
                 )
-                onSave(updated)
+                onSave(updated, isInvestment, isSelfTransfer)
             }
         )
+
+        if (showSelfTransferWarning) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showSelfTransferWarning = false },
+                title = { Text("Self Transfer") },
+                text = { Text("Self transfers will not be recorded as income or expense. This action will delete this transaction.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        isSelfTransfer = true
+                        showSelfTransferWarning = false
+                    }) { Text("Confirm") }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        isSelfTransfer = false
+                        showSelfTransferWarning = false
+                    }) { Text("Cancel") }
+                }
+            )
+        }
 
         if (showDatePicker) {
             DatePickerDialog(
@@ -118,9 +159,14 @@ fun EditTransactionContent(
     isIncome: Boolean,
     onTypeChange: (Boolean) -> Unit,
     selectedCategory: com.quickthought.orio.domain.model.Category,
+    categories: List<com.quickthought.orio.domain.model.Category>,
     onCategoryChange: (com.quickthought.orio.domain.model.Category) -> Unit,
     selectedDate: Long,
     onDateClick: () -> Unit,
+    isInvestment: Boolean,
+    onInvestmentToggle: (Boolean) -> Unit,
+    isSelfTransfer: Boolean,
+    onSelfTransferToggle: (Boolean) -> Unit,
     onSave: () -> Unit
 ) {
     Column(
@@ -157,6 +203,7 @@ fun EditTransactionContent(
 
         TransactionCategorySelector(
             selectedCategory = selectedCategory,
+            categories = categories,
             onCategoryChange = onCategoryChange
         )
 
@@ -165,6 +212,15 @@ fun EditTransactionContent(
         TransactionDatePickerCard(
             selectedDate = selectedDate,
             onClick = onDateClick
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TransactionFlagsSection(
+            isInvestment = isInvestment,
+            onInvestmentToggle = onInvestmentToggle,
+            isSelfTransfer = isSelfTransfer,
+            onSelfTransferToggle = onSelfTransferToggle
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -250,6 +306,44 @@ fun SmsSourceInfoCard(rawMessage: String?) {
     }
 }
 
+@Composable
+fun TransactionFlagsSection(
+    isInvestment: Boolean,
+    onInvestmentToggle: (Boolean) -> Unit,
+    isSelfTransfer: Boolean,
+    onSelfTransferToggle: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        androidx.compose.material3.FilterChip(
+            modifier = Modifier.weight(1f),
+            selected = isInvestment,
+            onClick = { onInvestmentToggle(!isInvestment) },
+            label = {
+                Text(
+                    "Investment",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            },
+        )
+        androidx.compose.material3.FilterChip(
+            modifier = Modifier.weight(1f),
+            selected = isSelfTransfer,
+            onClick = { onSelfTransferToggle(!isSelfTransfer) },
+            label = {
+                Text(
+                    "Self Transfer",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            },
+        )
+    }
+}
+
 @PreviewLightDark
 @PreviewScreenSizes
 @Composable
@@ -272,9 +366,14 @@ private fun EditTransactionContentPreview() {
             isIncome = false,
             onTypeChange = {},
             selectedCategory = transactionCategories.first { it.id == "shopping" },
+            categories = emptyList(),
             onCategoryChange = {},
             selectedDate = System.currentTimeMillis(),
             onDateClick = {},
+            isInvestment = false,
+            onInvestmentToggle = {},
+            isSelfTransfer = false,
+            onSelfTransferToggle = {},
             onSave = {}
         )
     }
